@@ -1,7 +1,7 @@
 /* This component renders the chessboard and its squares. */
 
 // ---------------- Imports ---------------- //
-import "./board.css";
+import "./Board.css";
 import Square from "./Square";
 import { FILES, RANKS, type SquareId } from "./BoardConfig";
 import { useMovePiece } from "../board/hooks/useMovePiece";
