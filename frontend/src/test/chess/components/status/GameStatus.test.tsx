@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { GameStatus } from '../../../../main/chess/components/status/GameStatus';
 

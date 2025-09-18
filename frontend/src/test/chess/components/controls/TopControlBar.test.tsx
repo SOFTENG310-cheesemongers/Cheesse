@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import TopControlBar from '../../../../main/chess/components/controls/TopControlBar';
 

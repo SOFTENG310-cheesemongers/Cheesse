@@ -10,8 +10,8 @@ import { useMoveLog } from '../../history/moveLogStore';
 export function useRecordMove() {
     const { addMove } = useMoveLog();
     // Record a move in the history
-    return (from: string, to: string, piece: string) => {
-        const [pieceName, color] = piece.split('_');
+    return (_from: string, to: string, piece: string) => {
+        const [pieceName, _color] = piece.split('_');
         // Use standard chess notation:
         // P = pawn (implicit), N = knight, B = bishop, R = rook, Q = queen, K = king
         let pieceSymbol = '';

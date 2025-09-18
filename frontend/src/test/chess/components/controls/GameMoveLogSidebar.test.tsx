@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import GameMoveLogSidebar from '../../../../main/chess/components/controls/GameMoveLogSidebar';
 const { useMoveLog } = require('../../../../main/chess/components/history/moveLogStore');
