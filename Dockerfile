@@ -12,7 +12,7 @@ FROM caddy:2-alpine AS runner
 WORKDIR /app
 RUN addgroup -S nonroot \
     && adduser -S nonroot -G nonroot
-COPY --from=builder /app/dist .
+COPY --from=builder /app/frontend/dist .
 USER nonroot
 CMD ["caddy", "file-server", "-r", "/app"]
 
