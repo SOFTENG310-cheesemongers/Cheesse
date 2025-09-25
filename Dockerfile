@@ -15,4 +15,3 @@ RUN addgroup -S nonroot \
 COPY --from=builder /app/frontend/dist .
 USER nonroot
 CMD ["caddy", "file-server", "-r", "/app"]
-
