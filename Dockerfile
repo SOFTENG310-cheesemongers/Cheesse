@@ -1,8 +1,9 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
 
-COPY package.json .
 RUN npm install --ignore-scripts
+COPY ./frontend/package*.json ./frontend/
+WORKDIR /app/frontend
 
 COPY ./frontend .
 RUN npm run build
