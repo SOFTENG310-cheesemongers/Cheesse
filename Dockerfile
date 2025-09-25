@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY ./frontend/package*.json ./frontend/
 WORKDIR /app/frontend
-RUN npm ci
+RUN npm install --ignore-scripts
 
 COPY ./frontend ./
 RUN npm run build
