@@ -1,9 +1,9 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
 
-RUN npm install --ignore-scripts
 COPY ./frontend/package*.json ./frontend/
 WORKDIR /app/frontend
+RUN npm ci
 
 COPY ./frontend ./
 RUN npm run build
