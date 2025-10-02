@@ -21,13 +21,28 @@ Cheesse provides a fully interactive chess experience with a graphical web inter
 
 ## Getting Started  
 
-### Prerequisites  
+### Production
+
+If you have docker installed (see <https://docs.docker.com/get-started/get-docker/> for installation instructions), you can use the docker container built from this repository to streamline installation for production environments.
+
+#### Prerequisites
+
+For this you just need a up-to-date version of docker
+
+#### Installation
+
+Start by cloning the repository (`git clone https://github.com/SOFTENG310-cheesemongers/Cheesse`), then `cd` into the directory (`cd Cheesse`), then you can run the container by running `docker compose up`.
+
+
+### Development
+
+#### Prerequisites  
 Make sure you have the following installed on your system:  
 - **Node.js** (v16 or later)  
 - **npm** (comes with Node.js)
 - If you don't have: node.js go [here](https://nodejs.org/en/download) to get it.
 
-### Installation  
+#### Installation  
 Make sure to run the below code after forking and cloning the repository
 
 ```bash
@@ -35,7 +50,7 @@ cd frontend
 npm install
 ```
 
-### Running the Project
+#### Running the Project
 Start the development server:
 ```bash
 npm start
@@ -43,7 +58,7 @@ npm start
 A link should open automatically on your browser. 
 If it doesn't go to: [here](http://localhost:3000/)
 
-### Testing
+#### Testing
 Run automated tests with:
 ```bash
 npm test
