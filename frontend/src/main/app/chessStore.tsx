@@ -6,12 +6,28 @@ interface ChessMove {
     black?: string;
 }
 
+interface MoveDetails {
+    from: string;
+    to: string;
+    piece: string;
+    capturedPiece?: string;
+    notation: string;
+}
+
 interface ChessState {
-    
+
     // move history (never used for now)
     moveHistory: readonly ChessMove[];
     currentMove: number;
     addMove: (move: string) => void;
+
+    // detailed moves for undo functionality
+    moveDetails: readonly MoveDetails[];
+    addMoveDetails: (details: MoveDetails) => void;
+    canUndo: boolean;
+    undoLastMove: () => MoveDetails | null;
+    requestUndo: () => void;
+    undoTrigger: number;
 
     // timer state
     whiteSeconds: number;
@@ -36,6 +52,8 @@ const ChessContext = createContext<ChessState | null>(null);
 export function ChessProvider({ children }: { children: ReactNode }): JSX.Element {
     const [moveHistory, setMoveHistory] = useState<ChessMove[]>([]);
     const [currentMove, setCurrentMove] = useState(0);
+    const [moveDetails, setMoveDetails] = useState<MoveDetails[]>([]);
+    const [undoTrigger, setUndoTrigger] = useState(0);
 
     // selected starting time for a new game; null means no timer selected / no timer created
     const [selectedSeconds, setSelectedSeconds] = useState<number | null>(null);
@@ -64,7 +82,7 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
     const addMove = (move: string) => {
         setMoveHistory(prev => {
             const lastMove = prev[prev.length - 1];
-            
+
             // If we have a last move and it doesn't have a black move yet
             if (lastMove && !lastMove.black) {
                 // Add black move to the last pair
@@ -73,11 +91,50 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
                     { ...lastMove, black: move }
                 ];
             }
-            
+
             // Start a new move pair with white's move
             return [...prev, { white: move }];
         });
         setCurrentMove(prev => prev + 1);
+    };
+
+    // Move details functions for undo functionality
+    const addMoveDetails = (details: MoveDetails) => {
+        setMoveDetails(prev => [...prev, details]);
+    };
+
+    const undoLastMove = (): MoveDetails | null => {
+        if (moveDetails.length === 0) return null;
+
+        const lastMove = moveDetails[moveDetails.length - 1];
+        setMoveDetails(prev => prev.slice(0, -1));
+
+        // Also remove from regular move history
+        setMoveHistory(prev => {
+            if (prev.length === 0) return prev;
+
+            const lastMoveEntry = prev[prev.length - 1];
+
+            // If the last entry has both white and black moves, remove only the black move
+            if (lastMoveEntry.black) {
+                return [
+                    ...prev.slice(0, -1),
+                    { white: lastMoveEntry.white }
+                ];
+            }
+
+            // If the last entry only has white move, remove the entire entry
+            return prev.slice(0, -1);
+        });
+
+        setCurrentMove(prev => Math.max(0, prev - 1));
+        return lastMove;
+    };
+
+    const canUndo = moveDetails.length > 0;
+
+    const requestUndo = () => {
+        setUndoTrigger(prev => prev + 1);
     };
 
     // timer actions
@@ -96,10 +153,18 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
         setIsRunning(s > 0);
     };
 
-    const value = useMemo(() => ({ 
-        moveHistory, 
+    const value = useMemo(() => ({
+        moveHistory,
         currentMove,
         addMove,
+
+        // move details for undo
+        moveDetails,
+        addMoveDetails,
+        canUndo,
+        undoLastMove,
+        requestUndo,
+        undoTrigger,
 
         // timer
         whiteSeconds,
@@ -107,9 +172,9 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
         isWhiteTurn,
         isRunning,
 
-    // selected start time (null = no timer)
-    selectedSeconds,
-    setSelectedSeconds,
+        // selected start time (null = no timer)
+        selectedSeconds,
+        setSelectedSeconds,
 
         // actions
         setWhiteSeconds,
@@ -117,7 +182,7 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
         changeTurn,
         toggleRunning,
         resetTimers,
-    }), [moveHistory, currentMove, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds]);
+    }), [moveHistory, currentMove, moveDetails, canUndo, undoTrigger, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds]);
 
     return (
         <ChessContext.Provider value={value}>

@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from "react";
 import Referee from "../../../referee/Referee";
 import { useChessStore } from '../../../../app/chessStore';
-import { type SquareId, initialPieces } from "../BoardConfig";
+import { type SquareId, type PieceName, initialPieces } from "../BoardConfig";
 import { squareToCoords } from "../../../utils/chessUtils";
 import { useRecordMove } from "./useRecordMove";
 
@@ -16,12 +16,14 @@ export function useMovePiece() {
   const recordMove = useRecordMove();
   const [pieces, setPieces] = useState(initialPieces);
   const moveInProgress = useRef(false);
+  const lastMoveDetailsLength = useRef(0);
+  const lastProcessedUndoTrigger = useRef(0);
 
   // Persistent Referee instance
   const referee = useRef(new Referee()).current;
 
-  // change turn function from global chess store
-  const { changeTurn } = useChessStore();
+  // chess store functions
+  const { changeTurn, addMoveDetails, moveDetails, undoTrigger, undoLastMove } = useChessStore();
 
   // Persistent move counter
   const moveCountRef = useRef(0);
@@ -37,7 +39,52 @@ export function useMovePiece() {
       const [x, y] = squareToCoords(square);
       boardArray.current[y][x] = piece;
     }
+    lastMoveDetailsLength.current = 0;
   }, []);
+
+  // Effect to handle undo when trigger changes
+  useEffect(() => {
+    if (undoTrigger > lastProcessedUndoTrigger.current && moveDetails.length > 0) {
+      // Update the processed trigger to prevent repeating
+      lastProcessedUndoTrigger.current = undoTrigger;
+
+      // Get the last move details and remove it from history
+      const lastMove = undoLastMove();
+
+      if (lastMove) {
+        // Create new pieces object with the move reversed
+        const newPieces = { ...pieces };
+
+        // Remove piece from its current position (lastMove.to)
+        delete newPieces[lastMove.to as SquareId];
+
+        // Put the piece back to its original position (lastMove.from)
+        newPieces[lastMove.from as SquareId] = lastMove.piece as PieceName;
+
+        // If there was a captured piece, restore it to the destination square
+        if (lastMove.capturedPiece) {
+          newPieces[lastMove.to as SquareId] = lastMove.capturedPiece as PieceName;
+        }
+
+        // Update the pieces state
+        setPieces(newPieces);
+
+        // Update board array to match the new pieces state
+        const newBoardArray = Array(8).fill(null).map(() => Array(8).fill(null));
+        Object.entries(newPieces).forEach(([square, piece]) => {
+          const [x, y] = squareToCoords(square as SquareId);
+          newBoardArray[y][x] = piece;
+        });
+        boardArray.current = newBoardArray;
+
+        // Change turn back to previous player
+        changeTurn();
+
+        // Decrement move count
+        moveCountRef.current = Math.max(0, moveCountRef.current - 1);
+      }
+    }
+  }, [undoTrigger, moveDetails, pieces, changeTurn, undoLastMove]);
 
   /**
    * Moves a piece from one square to another.
@@ -68,6 +115,16 @@ export function useMovePiece() {
 
       if (!moveInProgress.current) {
         moveInProgress.current = true;
+
+        // Save move details for undo functionality
+        addMoveDetails({
+          from,
+          to,
+          piece,
+          capturedPiece: destPiece,
+          notation: `${piece} ${from}-${to}`
+        });
+
         recordMove(from, to, piece);
         changeTurn();
         setTimeout(() => { moveInProgress.current = false; }, 0);

@@ -20,7 +20,7 @@ interface GamePageProps {
 }
 
 export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
-  const { isWhiteTurn } = useChessStore();
+  const { isWhiteTurn, canUndo, requestUndo } = useChessStore();
 
   // State for forfeit functionality
   const [showConfirmForfeit, setShowConfirmForfeit] = useState(false);
@@ -34,8 +34,13 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
       // Show custom confirmation dialog
       setForfeitingPlayer(isWhiteTurn ? 'White' : 'Black');
       setShowConfirmForfeit(true);
+    } else if (option === 'undo') {
+      // Handle undo - trigger the undo operation
+      requestUndo();
+      setSelectedOption(option);
+      setTimeout(() => setSelectedOption(''), 300);
     } else {
-      // For undo/redo, just update the selected option for visual feedback
+      // For redo, just update the selected option for visual feedback
       setSelectedOption(option);
       setTimeout(() => setSelectedOption(''), 300);
     }
@@ -61,7 +66,7 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
   };
 
   const options = [
-    { value: 'undo', label: 'Undo', disabled: true },
+    { value: 'undo', label: 'Undo', disabled: !canUndo },
     { value: 'redo', label: 'Redo', disabled: true },
     { value: 'forfeit', label: 'Forfeit' },
   ];
