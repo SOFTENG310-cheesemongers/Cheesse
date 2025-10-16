@@ -28,7 +28,11 @@ interface ChessState {
     setBlackSeconds: (value: number | ((prev: number) => number)) => void;
     changeTurn: (nextIsWhite?: boolean) => void;
     toggleRunning: () => void;
+    setRunning: (running: boolean) => void;
     resetTimers: (seconds?: number) => void;
+    // in-game menu overlay
+    menuOpen: boolean;
+    setMenuOpen: (open: boolean) => void;
 }
 
 const ChessContext = createContext<ChessState | null>(null);
@@ -45,6 +49,9 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
     const [blackSeconds, setBlackSeconds] = useState<number>(0);
     const [isWhiteTurn, setIsWhiteTurn] = useState<boolean>(true);
     const [isRunning, setIsRunning] = useState<boolean>(true);
+
+    // in-game menu overlay state
+    const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
     // Whenever selectedSeconds changes to a non-null value, reset timers to that value
     useEffect(() => {
@@ -88,6 +95,8 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
 
     const toggleRunning = () => setIsRunning(!isRunning);
 
+    const setRunning = (running: boolean) => setIsRunning(running);
+
     const resetTimers = (seconds?: number) => {
         const s = typeof seconds === 'number' ? seconds : selectedSeconds ?? 0;
         setWhiteSeconds(s);
@@ -111,13 +120,18 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
     selectedSeconds,
     setSelectedSeconds,
 
-        // actions
-        setWhiteSeconds,
-        setBlackSeconds,
-        changeTurn,
-        toggleRunning,
-        resetTimers,
-    }), [moveHistory, currentMove, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds]);
+    // in-game menu
+    menuOpen,
+    setMenuOpen,
+
+    // actions
+    setWhiteSeconds,
+    setBlackSeconds,
+    changeTurn,
+    toggleRunning,
+    setRunning,
+    resetTimers,
+    }), [moveHistory, currentMove, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds, menuOpen]);
 
     return (
         <ChessContext.Provider value={value}>
