@@ -18,7 +18,6 @@ export default function InGameMenu({ open, onClose, children }: InGameMenuProps)
   return (
     <div className="igm-overlay" onClick={handleOverlayClick} role="dialog" aria-modal="true">
       <div className="igm-box">
-        <button className="igm-close" onClick={onClose} aria-label="Close">✕</button>
         <div className="igm-content">{children}</div>
       </div>
     </div>

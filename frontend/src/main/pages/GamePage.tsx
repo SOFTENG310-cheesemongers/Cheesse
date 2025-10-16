@@ -10,6 +10,8 @@ import { useState } from 'react';
 import Timer from "../chess/components/controls/Timer";
 import { useChessStore } from '../app/chessStore';
 import InGameMenu from '../chess/components/controls/InGameMenu'
+import InGameMenuPause from '../chess/components/controls/InGameMenuPause'
+import InGameMenuResult from "../chess/components/controls/InGameMenuResult";
 
 /**
  * GamePage component - main container for the chess game UI.
@@ -51,12 +53,7 @@ export default function GamePage() {
         // resume timer only when a timer is configured
         if (selectedSeconds !== null) setRunning(true);
       }}>
-        <h2>Game Menu</h2>
-        <p>Options: Restart, Forfeit, Rematch, Settings...</p>
-        <div style={{ marginTop: 12 }}>
-          <button onClick={() => { /* placeholder restart; implement later */ }}>Restart</button>
-          <button style={{ marginLeft: 8 }} onClick={() => { /* placeholder forfeit; implement later */ }}>Forfeit</button>
-        </div>
+        <InGameMenuResult />
       </InGameMenu>
     </div>
   );
