@@ -7,6 +7,7 @@ import { useChessStore } from '../../../../app/chessStore';
 import { type SquareId, type PieceName, initialPieces } from "../BoardConfig";
 import { squareToCoords } from "../../../utils/chessUtils";
 import { useRecordMove } from "./useRecordMove";
+import { useMoveLog } from "../../history/moveLogStore";
 
 /**
  * Custom hook to manage piece movement in the chess game.
@@ -14,6 +15,7 @@ import { useRecordMove } from "./useRecordMove";
  */
 export function useMovePiece() {
   const recordMove = useRecordMove();
+  const { undoLastMove: undoMoveLog } = useMoveLog();
   const [pieces, setPieces] = useState(initialPieces);
   const moveInProgress = useRef(false);
   const lastMoveDetailsLength = useRef(0);
@@ -82,9 +84,12 @@ export function useMovePiece() {
 
         // Decrement move count
         moveCountRef.current = Math.max(0, moveCountRef.current - 1);
+
+        // Update the move log UI
+        undoMoveLog();
       }
     }
-  }, [undoTrigger, moveDetails, pieces, changeTurn, undoLastMove]);
+  }, [undoTrigger, moveDetails, pieces, changeTurn, undoLastMove, undoMoveLog]);
 
   /**
    * Moves a piece from one square to another.
