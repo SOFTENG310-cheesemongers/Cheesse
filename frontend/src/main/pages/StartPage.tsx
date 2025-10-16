@@ -18,6 +18,13 @@ export default function StartPage() {
         setButtonsVisible(false)
     }
 
+    const returnToMenu = () => {
+        setGamePage(false);
+        setButtonsVisible(true);
+        changeSelectTimer(0); // Reset timer selection
+        setInitialSeconds(0); // Reset initial seconds
+    }
+
     const [selectTimer, changeSelectTimer] = useState(0); // 0 means no timer selected
 
     const [initialSeconds, setInitialSeconds] = useState(0);
@@ -57,13 +64,13 @@ export default function StartPage() {
                             <button className="option-button">Online PVP</button>
                         </div>
                         <div className="timer-buttons">
-                            <button className="option-button" 
+                            <button className="option-button"
                                 onClick={() => onTimerButtonClick(1)}
                                 style={{ border: selectTimer === 1 ? '10px solid gold' : 'none' }}>5 Mins</button>
-                            <button className="option-button" 
+                            <button className="option-button"
                                 onClick={() => onTimerButtonClick(2)}
                                 style={{ border: selectTimer === 2 ? '10px solid gold' : 'none' }}>10 Mins</button>
-                            <button className="option-button" 
+                            <button className="option-button"
                                 onClick={() => onTimerButtonClick(3)}
                                 style={{ border: selectTimer === 3 ? '10px solid gold' : 'none' }}>60 Mins</button>
                         </div>
@@ -73,14 +80,14 @@ export default function StartPage() {
             )}
             {gamePage ? (
                 <ChessProvider>
-                    <GameWithProvider initialSeconds={initialSeconds} />
+                    <GameWithProvider initialSeconds={initialSeconds} onReturnToMenu={returnToMenu} />
                 </ChessProvider>
             ) : null}
         </div>
     );
 }
 
-function GameWithProvider({ initialSeconds }: { initialSeconds: number }) {
+function GameWithProvider({ initialSeconds, onReturnToMenu }: { initialSeconds: number; onReturnToMenu: () => void }) {
     // This component runs inside ChessProvider and can set selectedSeconds
     const { setSelectedSeconds } = useChessStore();
 
@@ -90,5 +97,5 @@ function GameWithProvider({ initialSeconds }: { initialSeconds: number }) {
         // intentionally only run on mount/change of initialSeconds
     }, [initialSeconds, setSelectedSeconds]);
 
-    return <GamePage />;
+    return <GamePage onReturnToMenu={onReturnToMenu} />;
 }
