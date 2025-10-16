@@ -15,4 +15,5 @@ export interface MoveLogState {
     moves: ChessMove[];
     addMove: (move: string) => void;
     undoLastMove: () => void;
+    redoLastMove: (move: string) => void;
 }

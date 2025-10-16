@@ -29,6 +29,13 @@ interface ChessState {
     requestUndo: () => void;
     undoTrigger: number;
 
+    // redo functionality
+    redoStack: readonly MoveDetails[];
+    canRedo: boolean;
+    redoLastMove: () => MoveDetails | null;
+    requestRedo: () => void;
+    redoTrigger: number;
+
     // timer state
     whiteSeconds: number;
     blackSeconds: number;
@@ -54,6 +61,8 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
     const [currentMove, setCurrentMove] = useState(0);
     const [moveDetails, setMoveDetails] = useState<MoveDetails[]>([]);
     const [undoTrigger, setUndoTrigger] = useState(0);
+    const [redoStack, setRedoStack] = useState<MoveDetails[]>([]);
+    const [redoTrigger, setRedoTrigger] = useState(0);
 
     // selected starting time for a new game; null means no timer selected / no timer created
     const [selectedSeconds, setSelectedSeconds] = useState<number | null>(null);
@@ -101,6 +110,8 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
     // Move details functions for undo functionality
     const addMoveDetails = (details: MoveDetails) => {
         setMoveDetails(prev => [...prev, details]);
+        // Clear redo stack when a new move is made
+        setRedoStack([]);
     };
 
     const undoLastMove = (): MoveDetails | null => {
@@ -108,6 +119,9 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
 
         const lastMove = moveDetails[moveDetails.length - 1];
         setMoveDetails(prev => prev.slice(0, -1));
+
+        // Add to redo stack
+        setRedoStack(prev => [...prev, lastMove]);
 
         // Also remove from regular move history
         setMoveHistory(prev => {
@@ -135,6 +149,43 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
 
     const requestUndo = () => {
         setUndoTrigger(prev => prev + 1);
+    };
+
+    // Redo functionality
+    const canRedo = redoStack.length > 0;
+
+    const redoLastMove = (): MoveDetails | null => {
+        if (redoStack.length === 0) return null;
+
+        const moveToRedo = redoStack[redoStack.length - 1];
+        setRedoStack(prev => prev.slice(0, -1));
+
+        // Add back to move details
+        setMoveDetails(prev => [...prev, moveToRedo]);
+
+        // Add back to regular move history
+        setMoveHistory(prev => {
+            const lastMove = prev[prev.length - 1];
+
+            // If we have a last move and it doesn't have a black move yet
+            if (lastMove && !lastMove.black) {
+                // Add black move to the last pair
+                return [
+                    ...prev.slice(0, -1),
+                    { ...lastMove, black: moveToRedo.notation }
+                ];
+            }
+
+            // Start a new move pair with white's move
+            return [...prev, { white: moveToRedo.notation }];
+        });
+
+        setCurrentMove(prev => prev + 1);
+        return moveToRedo;
+    };
+
+    const requestRedo = () => {
+        setRedoTrigger(prev => prev + 1);
     };
 
     // timer actions
@@ -166,6 +217,13 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
         requestUndo,
         undoTrigger,
 
+        // redo functionality
+        redoStack,
+        canRedo,
+        redoLastMove,
+        requestRedo,
+        redoTrigger,
+
         // timer
         whiteSeconds,
         blackSeconds,
@@ -182,7 +240,7 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
         changeTurn,
         toggleRunning,
         resetTimers,
-    }), [moveHistory, currentMove, moveDetails, canUndo, undoTrigger, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds]);
+    }), [moveHistory, currentMove, moveDetails, canUndo, undoTrigger, redoStack, canRedo, redoTrigger, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds]);
 
     return (
         <ChessContext.Provider value={value}>

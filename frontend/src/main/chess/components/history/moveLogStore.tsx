@@ -49,11 +49,27 @@ export function MoveLogProvider({ children }: { children: ReactNode }) {
         });
     };
 
+    const redoLastMove = (move: string) => {
+        setMoves(prev => {
+            // If last move exists and doesn't have a black move
+            if (prev.length > 0 && !prev[prev.length - 1].black) {
+                return [
+                    ...prev.slice(0, -1),
+                    { ...prev[prev.length - 1], black: move }
+                ];
+            }
+
+            // Start a new move pair with white's move
+            return [...prev, { white: move }];
+        });
+    };
+
     // Memoized context value
     const value = useMemo(() => ({
         moves,
         addMove,
-        undoLastMove
+        undoLastMove,
+        redoLastMove
     }), [moves]);
 
     // Provide the context value

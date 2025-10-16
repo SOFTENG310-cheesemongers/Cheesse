@@ -20,7 +20,7 @@ interface GamePageProps {
 }
 
 export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
-  const { isWhiteTurn, canUndo, requestUndo } = useChessStore();
+  const { isWhiteTurn, canUndo, requestUndo, canRedo, requestRedo } = useChessStore();
 
   // State for forfeit functionality
   const [showConfirmForfeit, setShowConfirmForfeit] = useState(false);
@@ -39,8 +39,9 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
       requestUndo();
       setSelectedOption(option);
       setTimeout(() => setSelectedOption(''), 300);
-    } else {
-      // For redo, just update the selected option for visual feedback
+    } else if (option === 'redo') {
+      // Handle redo - trigger the redo operation
+      requestRedo();
       setSelectedOption(option);
       setTimeout(() => setSelectedOption(''), 300);
     }
@@ -67,7 +68,7 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
 
   const options = [
     { value: 'undo', label: 'Undo', disabled: !canUndo },
-    { value: 'redo', label: 'Redo', disabled: true },
+    { value: 'redo', label: 'Redo', disabled: !canRedo },
     { value: 'forfeit', label: 'Forfeit' },
   ];
 
