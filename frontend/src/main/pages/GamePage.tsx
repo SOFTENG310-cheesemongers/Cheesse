@@ -9,6 +9,7 @@ import GameOptionsSidebar from '../chess/components/controls/GameOptionsSidebar'
 import { useState } from 'react';
 import Timer from "../chess/components/controls/Timer";
 import { useChessStore } from '../app/chessStore';
+import InGameMenu from '../chess/components/controls/InGameMenu'
 
 /**
  * GamePage component - main container for the chess game UI.
@@ -24,10 +25,13 @@ export default function GamePage() {
 
   ];
   const [selectedOption, setSelectedOption] = useState('standard');
+  const { menuOpen, setMenuOpen, selectedSeconds, setRunning } = useChessStore();
 
   return (
     <div className="game-page-div">
       <GameMoveLogSidebar />
+
+      {/* Menu is opened from the Timer pause button; header button removed */}
 
         <div className="board-timer-wrapper">
           <Board />
@@ -40,6 +44,20 @@ export default function GamePage() {
         onOptionChange={setSelectedOption}
         options={options}
       />
+
+      <InGameMenu open={menuOpen} onClose={() => {
+        // close menu
+        setMenuOpen(false);
+        // resume timer only when a timer is configured
+        if (selectedSeconds !== null) setRunning(true);
+      }}>
+        <h2>Game Menu</h2>
+        <p>Options: Restart, Forfeit, Rematch, Settings...</p>
+        <div style={{ marginTop: 12 }}>
+          <button onClick={() => { /* placeholder restart; implement later */ }}>Restart</button>
+          <button style={{ marginLeft: 8 }} onClick={() => { /* placeholder forfeit; implement later */ }}>Forfeit</button>
+        </div>
+      </InGameMenu>
     </div>
   );
 }
