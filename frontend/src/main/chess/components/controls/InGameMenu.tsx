@@ -9,9 +9,9 @@ type InGameMenuProps = {
 }
 
 export default function InGameMenu({ open, onClose, children }: InGameMenuProps) {
+    const { menuMode } = useChessStore()
+  
   if (!open) return null
-
-  const { menuMode } = useChessStore()
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     // close when clicking the overlay itself, but never close from overlay clicks when showing results
