@@ -24,7 +24,41 @@ export function MoveLogProvider({ children }: { children: ReactNode }) {
                     { ...prev[prev.length - 1], black: move }
                 ];
             }
-            
+
+            // Start a new move pair with white's move
+            return [...prev, { white: move }];
+        });
+    };
+
+    const undoLastMove = () => {
+        setMoves(prev => {
+            if (prev.length === 0) return prev;
+
+            const lastMove = prev[prev.length - 1];
+
+            // If the last move has both white and black moves, remove only the black move
+            if (lastMove.black) {
+                return [
+                    ...prev.slice(0, -1),
+                    { white: lastMove.white }
+                ];
+            }
+
+            // If the last move only has white move, remove the entire entry
+            return prev.slice(0, -1);
+        });
+    };
+
+    const redoLastMove = (move: string) => {
+        setMoves(prev => {
+            // If last move exists and doesn't have a black move
+            if (prev.length > 0 && !prev[prev.length - 1].black) {
+                return [
+                    ...prev.slice(0, -1),
+                    { ...prev[prev.length - 1], black: move }
+                ];
+            }
+
             // Start a new move pair with white's move
             return [...prev, { white: move }];
         });
@@ -33,7 +67,9 @@ export function MoveLogProvider({ children }: { children: ReactNode }) {
     // Memoized context value
     const value = useMemo(() => ({
         moves,
-        addMove
+        addMove,
+        undoLastMove,
+        redoLastMove
     }), [moves]);
 
     // Provide the context value

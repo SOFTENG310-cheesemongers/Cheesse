@@ -3,7 +3,8 @@
 // ---------------- Imports ---------------- //
 import "./StartPage.css"
 import GamePage from './GamePage'
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ChessProvider, useChessStore } from '../app/chessStore';
 
 /**
  * StartPage component - Displays the initial game setup options.
@@ -15,6 +16,13 @@ export default function StartPage() {
     const showGamePage = () => {
         setGamePage(true);
         setButtonsVisible(false)
+    }
+
+    const returnToMenu = () => {
+        setGamePage(false);
+        setButtonsVisible(true);
+        changeSelectTimer(0); // Reset timer selection
+        setInitialSeconds(0); // Reset initial seconds
     }
 
     const [selectTimer, changeSelectTimer] = useState(0); // 0 means no timer selected
@@ -56,13 +64,13 @@ export default function StartPage() {
                             <button className="option-button">Online PVP</button>
                         </div>
                         <div className="timer-buttons">
-                            <button className="option-button" 
+                            <button className="option-button"
                                 onClick={() => onTimerButtonClick(1)}
                                 style={{ border: selectTimer === 1 ? '10px solid gold' : 'none' }}>5 Mins</button>
-                            <button className="option-button" 
+                            <button className="option-button"
                                 onClick={() => onTimerButtonClick(2)}
                                 style={{ border: selectTimer === 2 ? '10px solid gold' : 'none' }}>10 Mins</button>
-                            <button className="option-button" 
+                            <button className="option-button"
                                 onClick={() => onTimerButtonClick(3)}
                                 style={{ border: selectTimer === 3 ? '10px solid gold' : 'none' }}>60 Mins</button>
                         </div>
@@ -70,7 +78,24 @@ export default function StartPage() {
                     </div>
                 </div>
             )}
-            {gamePage ? <GamePage initialSeconds={initialSeconds} /> : null}
+            {gamePage ? (
+                <ChessProvider>
+                    <GameWithProvider initialSeconds={initialSeconds} onReturnToMenu={returnToMenu} />
+                </ChessProvider>
+            ) : null}
         </div>
     );
+}
+
+function GameWithProvider({ initialSeconds, onReturnToMenu }: { initialSeconds: number; onReturnToMenu: () => void }) {
+    // This component runs inside ChessProvider and can set selectedSeconds
+    const { setSelectedSeconds } = useChessStore();
+
+    useEffect(() => {
+        if (initialSeconds > 0) setSelectedSeconds(initialSeconds);
+        else setSelectedSeconds(null);
+        // intentionally only run on mount/change of initialSeconds
+    }, [initialSeconds, setSelectedSeconds]);
+
+    return <GamePage onReturnToMenu={onReturnToMenu} />;
 }

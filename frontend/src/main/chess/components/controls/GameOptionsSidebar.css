@@ -47,7 +47,16 @@ button {
     color: #e2c489;
     background-color: #a48351;
     border-color: #a48351;
+}
 
+/* Disabled button styles */
+button.disabled,
+button:disabled {
+    color: #8b7355;
+    background-color: #6b5a3e;
+    border-color: #6b5a3e;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 /* Heading styles */
@@ -63,9 +72,9 @@ h1 {
 /* Responsive styles */
 @media (min-aspect-ratio: 16/9) {
     button {
-  
+
         font-size: 3vh;
-     
+
     }
 
     h1 {
@@ -90,4 +99,3 @@ h1 {
         padding-top: 1vh;
     }
 }
-

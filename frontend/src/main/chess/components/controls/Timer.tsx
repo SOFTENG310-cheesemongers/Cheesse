@@ -1,40 +1,38 @@
 import "./Timer.css";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useChessStore } from "../../../app/chessStore";
 
-export default function Timer({ initialSeconds }: { initialSeconds: number }) {
-
-    const [whiteSeconds, setWhiteSeconds] = useState(initialSeconds);
-    const [blackSeconds, setBlackSeconds] = useState(initialSeconds);
-
-
-    const [isWhiteTurn, changeTurn] = useState(true); // This should be managed by the game state
-
-    const [isRunning, setIsRunning] = useState(true);
+export default function Timer() {
+    const {
+        whiteSeconds,
+        blackSeconds,
+        isWhiteTurn,
+        isRunning,
+        setWhiteSeconds,
+        setBlackSeconds,
+        changeTurn,
+        toggleRunning,
+    } = useChessStore();
 
     const formatTime = (totalSeconds: number) => {
         const minutes = Math.floor(totalSeconds / 60);
         const remainingSeconds = totalSeconds % 60;
         return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
-
     useEffect(() => {
-        let timer: NodeJS.Timeout;
+        let timer: NodeJS.Timeout | undefined;
         if (isRunning) {
             timer = setInterval(() => {
                 if (!isRunning) return;
-                if (isWhiteTurn) {
-                    setWhiteSeconds(prev => Math.max(prev - 1, 0));
-                } else {
-                    setBlackSeconds(prev => Math.max(prev - 1, 0));
-                }
+                if (isWhiteTurn) setWhiteSeconds((prev: number) => Math.max(prev - 1, 0));
+                else setBlackSeconds((prev: number) => Math.max(prev - 1, 0));
             }, 1000);
         }
-        return () => clearInterval(timer);
-    }, [isRunning, isWhiteTurn]);
+        return () => { if (timer) clearInterval(timer); };
+    }, [isRunning, isWhiteTurn, setWhiteSeconds, setBlackSeconds]);
 
     const onPauseClick = () => {
-        setIsRunning(!isRunning);
-        console.log("Timer paused/resumed");
+        toggleRunning();
     };
 
     return (
