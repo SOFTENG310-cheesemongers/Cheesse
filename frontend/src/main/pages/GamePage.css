@@ -81,15 +81,15 @@
 .cancel-button,
 .return-to-menu-button {
     padding: 0;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: bold;
     font-family: 'Agency FB', sans-serif;
     border: 2px solid #a48351;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    width: 140px;
-    height: 50px;
+    width: 180px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -121,7 +121,10 @@
     background-color: #4caf50;
     color: white;
     border-color: #4caf50;
-    margin-top: 20px;
+    width: 260px;
+    height: 80px;
+    font-size: 2rem;
+    padding: 0 16px;
 }
 
 .return-to-menu-button:hover {
