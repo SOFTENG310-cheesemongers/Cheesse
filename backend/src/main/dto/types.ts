@@ -34,7 +34,7 @@ export interface MoveAcceptedDto {
 }
 
 export interface OpponentJoinedDto {
-  color: Color;
+  opponentColor: Color;
 }
 
 export interface ErrorMessageDto {
