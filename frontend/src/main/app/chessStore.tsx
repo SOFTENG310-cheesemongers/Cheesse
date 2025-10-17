@@ -33,6 +33,14 @@ interface ChessState {
     // in-game menu overlay
     menuOpen: boolean;
     setMenuOpen: (open: boolean) => void;
+    // menu mode: 'pause' shows pause UI, 'result' shows result UI
+    menuMode: 'pause' | 'result';
+    setMenuMode: (m: 'pause' | 'result') => void;
+    // optional message to show in result mode
+    menuMessage: string | null;
+    setMenuMessage: (m: string | null) => void;
+    // helper to open the menu in result mode with a message
+    setMenuResult: (message: string) => void;
 }
 
 const ChessContext = createContext<ChessState | null>(null);
@@ -52,6 +60,8 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
 
     // in-game menu overlay state
     const [menuOpen, setMenuOpen] = useState<boolean>(false);
+    const [menuMode, setMenuMode] = useState<'pause' | 'result'>('pause');
+    const [menuMessage, setMenuMessage] = useState<string | null>(null);
 
     // Whenever selectedSeconds changes to a non-null value, reset timers to that value
     useEffect(() => {
@@ -123,6 +133,15 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
     // in-game menu
     menuOpen,
     setMenuOpen,
+        menuMode,
+        setMenuMode,
+        menuMessage,
+        setMenuMessage,
+        setMenuResult: (message: string) => {
+            setMenuMode('result')
+            setMenuMessage(message)
+            setMenuOpen(true)
+        },
 
     // actions
     setWhiteSeconds,

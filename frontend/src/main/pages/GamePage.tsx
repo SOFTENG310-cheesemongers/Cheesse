@@ -27,7 +27,7 @@ export default function GamePage() {
 
   ];
   const [selectedOption, setSelectedOption] = useState('standard');
-  const { menuOpen, setMenuOpen, selectedSeconds, setRunning } = useChessStore();
+  const { menuOpen, setMenuOpen, selectedSeconds, setRunning, menuMode, menuMessage } = useChessStore();
 
   return (
     <div className="game-page-div">
@@ -53,7 +53,7 @@ export default function GamePage() {
         // resume timer only when a timer is configured
         if (selectedSeconds !== null) setRunning(true);
       }}>
-        <InGameMenuResult />
+        {menuMode === 'result' ? <InGameMenuResult message={menuMessage ?? ''} /> : <InGameMenuPause />}
       </InGameMenu>
     </div>
   );
