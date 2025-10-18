@@ -144,24 +144,29 @@ export function useMovePiece() {
     }
   }, [redoTrigger, pieces, changeTurn, redoLastMove, redoMoveLog]);
 
-  // Apply opponent moves from multiplayer
+
+  // Helper: convert GameStateDto.moves to a pieces object
+  function getPiecesFromState(state: any): Partial<Record<SquareId, PieceName>> {
+    // Start from initial position, then apply all moves
+    let pieces: Partial<Record<SquareId, PieceName>> = { ...initialPieces };
+    if (!state || !state.moves) return pieces;
+    for (const move of state.moves) {
+      const { from, to, piece } = move;
+      if (pieces[from as SquareId]) {
+        pieces[to as SquareId] = (piece as PieceName) || pieces[from as SquareId];
+        delete pieces[from as SquareId];
+      }
+    }
+    return pieces;
+  }
+
+  // Apply full board state from multiplayer
   const lastAppliedSeq = useRef(0);
   useEffect(() => {
-    if (!mp || !mp.lastMove || mp.lastMoveSeq === lastAppliedSeq.current) return;
-  const { from, to, piece } = mp.lastMove;
+    if (!mp || !mp.state || mp.lastMoveSeq === lastAppliedSeq.current) return;
     lastAppliedSeq.current = mp.lastMoveSeq;
-    // Apply the move to local board without validations (already validated by server)
-    setPieces(prev => {
-      const next = { ...prev };
-      const movingPiece = next[from as SquareId];
-      if (!movingPiece) return prev;
-      next[to as SquareId] = (piece as PieceName | undefined) || movingPiece as PieceName;
-      delete next[from as SquareId];
-      return next;
-    });
-    changeTurn();
-    moveCountRef.current += 1;
-    // Note: we don't push to move log here to avoid double logging;
+    setPieces(getPiecesFromState(mp.state));
+    // Optionally: update turn, move log, etc. from mp.state
   }, [mp?.lastMoveSeq]);
 
   /**
