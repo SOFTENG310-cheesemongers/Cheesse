@@ -1,0 +1,88 @@
+.room-form {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.room-form-panel {
+  flex: 1;
+  min-width: 280px;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.room-form-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.room-form-radio-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.room-form-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.room-form-radio input[type="radio"] {
+  cursor: pointer;
+}
+
+.room-form-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.room-form-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.room-form-action {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.room-form-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .room-form {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .room-form-panel {
+    min-width: 100%;
+  }
+}
