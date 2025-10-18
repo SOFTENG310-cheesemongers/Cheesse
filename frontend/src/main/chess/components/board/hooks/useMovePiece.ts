@@ -7,6 +7,7 @@ import { useChessStore } from '../../../../app/chessStore';
 import { type SquareId, type PieceName, initialPieces } from "../BoardConfig";
 import { squareToCoords } from "../../../utils/chessUtils";
 import { useRecordMove } from "./useRecordMove";
+import { useMultiplayer } from '../../../../multiplayer/MultiplayerProvider';
 import { useMoveLog } from "../../history/moveLogStore";
 
 /**
@@ -27,6 +28,9 @@ export function useMovePiece() {
 
   // chess store functions
   const { changeTurn, addMoveDetails, moveDetails, undoTrigger, undoLastMove, redoTrigger, redoLastMove } = useChessStore();
+  const multiplayer = useMultiplayer as unknown as (() => { roomId?: string; myColor?: 'white' | 'black'; lastMoveSeq: number; lastMove?: { from: string; to: string; piece?: string }; makeMove: (from: string, to: string, piece?: string) => void; state?: { activeColor: 'white' | 'black' } });
+  let mp: ReturnType<typeof multiplayer> | undefined;
+  try { mp = (useMultiplayer as any)(); } catch { mp = undefined; }
 
   // Persistent move counter
   const moveCountRef = useRef(0);
@@ -140,10 +144,44 @@ export function useMovePiece() {
     }
   }, [redoTrigger, pieces, changeTurn, redoLastMove, redoMoveLog]);
 
+  // Apply opponent moves from multiplayer
+  const lastAppliedSeq = useRef(0);
+  useEffect(() => {
+    if (!mp || !mp.lastMove || mp.lastMoveSeq === lastAppliedSeq.current) return;
+  const { from, to, piece } = mp.lastMove;
+    lastAppliedSeq.current = mp.lastMoveSeq;
+    // Apply the move to local board without validations (already validated by server)
+    setPieces(prev => {
+      const next = { ...prev };
+      const movingPiece = next[from as SquareId];
+      if (!movingPiece) return prev;
+      next[to as SquareId] = (piece as PieceName | undefined) || movingPiece as PieceName;
+      delete next[from as SquareId];
+      return next;
+    });
+    changeTurn();
+    moveCountRef.current += 1;
+    // Note: we don't push to move log here to avoid double logging;
+  }, [mp?.lastMoveSeq]);
+
   /**
    * Moves a piece from one square to another.
    */
   function movePiece(from: SquareId, to: SquareId) {
+    // Multiplayer: enforce turn and color lock
+    if (mp && mp.roomId) {
+      const movingPiece = pieces[from];
+      if (!movingPiece) return;
+      const isWhitePiece = movingPiece.endsWith('_white');
+      const myColor = mp.myColor;
+      const active = mp.state?.activeColor;
+      if ((myColor === 'white' && !isWhitePiece) || (myColor === 'black' && isWhitePiece)) {
+        return; // can't move opponent's pieces
+      }
+      if (active && myColor && active !== myColor) {
+        return; // not your turn according to server state
+      }
+    }
     setPieces(prev => {
       const piece = prev[from];
       const destPiece = prev[to];
@@ -194,7 +232,11 @@ export function useMovePiece() {
         });
 
         recordMove(from, to, piece);
-        changeTurn();
+        if (mp && mp.roomId) {
+          mp.makeMove(from, to, piece);
+        } else {
+          changeTurn();
+        }
         setTimeout(() => { moveInProgress.current = false; }, 0);
       }
 
