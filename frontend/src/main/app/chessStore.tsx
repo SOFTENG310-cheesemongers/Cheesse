@@ -271,8 +271,9 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
         setBlackSeconds,
         changeTurn,
         toggleRunning,
+        setRunning,
         resetTimers,
-    }), [moveHistory, currentMove, moveDetails, canUndo, undoTrigger, redoStack, canRedo, redoTrigger, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds, menuOpen]);
+    }), [moveHistory, currentMove, moveDetails, canUndo, undoTrigger, redoStack, canRedo, redoTrigger, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds, menuOpen, setRunning]);
 
     return (
         <ChessContext.Provider value={value}>

@@ -10,8 +10,9 @@ export default function Timer() {
         isRunning,
         setWhiteSeconds,
         setBlackSeconds,
-        toggleRunning,
-            setMenuOpen,
+        setMenuOpen,
+        setMenuMode,
+        setRunning,
     } = useChessStore();
 
     const formatTime = (totalSeconds: number) => {
@@ -32,9 +33,10 @@ export default function Timer() {
     }, [isRunning, isWhiteTurn, setWhiteSeconds, setBlackSeconds]);
 
     const onPauseClick = () => {
-        // open the in-game menu when pause is clicked
+        // open the in-game menu in pause mode and stop timers
+        setMenuMode('pause');
         setMenuOpen(true);
-        toggleRunning();
+        setRunning(false);
     };
 
     return (
