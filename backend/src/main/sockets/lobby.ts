@@ -84,6 +84,27 @@ export function setupSocketHandlers(io: Server) {
       });
     });
 
+    socket.on('startGame', (payload: { roomId: string }) => {
+      const room = rooms.get(payload.roomId);
+      if (!room) {
+        socket.emit('errorMessage', { message: 'Room not found' });
+        return;
+      }
+      const color = (Object.entries(room.players).find(([, id]) => id === socket.id)?.[0] as Color | undefined);
+      if (!color) {
+        socket.emit('errorMessage', { message: 'Not in room' });
+        return;
+      }
+      // Only the host (room creator, first player) can start
+      // Check if both players are present
+      if (!room.players.white || !room.players.black) {
+        socket.emit('errorMessage', { message: 'Waiting for opponent' });
+        return;
+      }
+      // Emit gameStarted to both players
+      io.to(room.roomId).emit('gameStarted', { roomId: room.roomId });
+    });
+
     socket.on('resign', (payload: { roomId: string }) => {
       const room = rooms.get(payload.roomId);
       if (!room) return;
