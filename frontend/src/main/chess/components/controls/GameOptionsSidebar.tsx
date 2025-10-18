@@ -11,6 +11,7 @@ import './GameOptionsSidebar.css';
 interface GameOption {
   value: string;
   label: string;
+  disabled?: boolean;
 }
 
 interface GameOptionsSidebarProps {
@@ -29,9 +30,10 @@ export default function GameOptionsSidebar({ selectedOption, onOptionChange, opt
             options.map((opt: GameOption) => (
               <button
                 key={opt.value}
-                className={opt.value === selectedOption ? 'selected' : ''}
+                className={`${opt.value === selectedOption ? 'selected' : ''} ${opt.disabled ? 'disabled' : ''}`}
+                disabled={opt.disabled}
                 onClick={() => {
-                  if (opt.value !== selectedOption) onOptionChange(opt.value);
+                  if (opt.value !== selectedOption && !opt.disabled) onOptionChange(opt.value);
                 }}
               >
                 {opt.label}
