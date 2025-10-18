@@ -10,8 +10,9 @@ export default function Timer() {
         isRunning,
         setWhiteSeconds,
         setBlackSeconds,
-        changeTurn,
-        toggleRunning,
+        setMenuOpen,
+        setMenuMode,
+        setRunning,
     } = useChessStore();
 
     const formatTime = (totalSeconds: number) => {
@@ -32,14 +33,15 @@ export default function Timer() {
     }, [isRunning, isWhiteTurn, setWhiteSeconds, setBlackSeconds]);
 
     const onPauseClick = () => {
-        toggleRunning();
+        // open the in-game menu in pause mode and stop timers
+        setMenuMode('pause');
+        setMenuOpen(true);
+        setRunning(false);
     };
 
     return (
         <div className="timerWrapper">
             <div className="whiteTimerContainer" 
-                onClick={() => isRunning && isWhiteTurn ? changeTurn(!isWhiteTurn) : null}
-                onKeyDown={(e) => (e.key === "Enter" && isWhiteTurn) ? changeTurn(!isWhiteTurn) : null}
                 style={{ backgroundColor: isWhiteTurn ? "#ffffff" : "transparent" }}
             >
                 <h3 className="whiteTimer" style={{ color: "black" }}>{formatTime(whiteSeconds)}</h3>
@@ -52,8 +54,6 @@ export default function Timer() {
                 />
             
             <div className="blackTimerContainer" 
-                onClick={() => isRunning &&  !isWhiteTurn ? changeTurn(!isWhiteTurn) : null} 
-                onKeyDown={(e) => (e.key === "Enter" && !isWhiteTurn) ? changeTurn(!isWhiteTurn) : null}
                 style={{ backgroundColor: !isWhiteTurn ? "#111111" : "transparent" }}
                 >
                 <h3 className="blackTimer" style={{ color: !isWhiteTurn ? "#ffffff" : "#000000" }}>{formatTime(blackSeconds)}</h3>

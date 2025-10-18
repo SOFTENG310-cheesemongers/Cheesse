@@ -26,7 +26,7 @@ export function useMovePiece() {
   const referee = useRef(new Referee()).current;
 
   // chess store functions
-  const { changeTurn, addMoveDetails, moveDetails, undoTrigger, undoLastMove, redoTrigger, redoLastMove } = useChessStore();
+  const { changeTurn, addMoveDetails, moveDetails, undoTrigger, undoLastMove, redoTrigger, redoLastMove, setMenuResult } = useChessStore();
 
   // Persistent move counter
   const moveCountRef = useRef(0);
@@ -196,6 +196,19 @@ export function useMovePiece() {
         recordMove(from, to, piece);
         changeTurn();
         setTimeout(() => { moveInProgress.current = false; }, 0);
+      }
+
+      // If the destination id contains 'king', trigger the result modal with the piece color
+      // piece format expected like '<type>_<color>' so split and take index 1
+      try {
+        console.log('Checking for king on move:', destPiece);
+        if (String(destPiece).includes('king')) {
+          const color = String(piece).split('_')[1] ?? '';
+          setMenuResult(color);
+        }
+      } catch (e) {
+        // ignore any unexpected format
+        console.warn('Failed to check for king on move:', e);
       }
 
       moveCountRef.current += 1;
