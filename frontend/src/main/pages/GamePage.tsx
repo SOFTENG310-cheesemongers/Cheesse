@@ -9,6 +9,7 @@ import GameOptionsSidebar from '../chess/components/controls/GameOptionsSidebar'
 import { useState } from 'react';
 import Timer from "../chess/components/controls/Timer";
 import { useChessStore } from '../app/chessStore';
+import { useOptionalMultiplayer } from '../multiplayer/MultiplayerProvider';
 
 /**
  * GamePage component - main container for the chess game UI.
@@ -21,6 +22,7 @@ interface GamePageProps {
 
 export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
   const { isWhiteTurn, canUndo, requestUndo, canRedo, requestRedo } = useChessStore();
+  const mp = useOptionalMultiplayer();
 
   // State for forfeit functionality
   const [showConfirmForfeit, setShowConfirmForfeit] = useState(false);
@@ -66,9 +68,10 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
     }
   };
 
+  const inMultiplayer = Boolean(mp && mp.roomId);
   const options = [
-    { value: 'undo', label: 'Undo', disabled: !canUndo },
-    { value: 'redo', label: 'Redo', disabled: !canRedo },
+    { value: 'undo', label: 'Undo', disabled: inMultiplayer || !canUndo },
+    { value: 'redo', label: 'Redo', disabled: inMultiplayer || !canRedo },
     { value: 'forfeit', label: 'Forfeit' },
   ];
 
