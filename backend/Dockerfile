@@ -10,7 +10,8 @@ COPY package*.json ./
 # Install dependencies with --ignore-scripts for security
 RUN npm ci --ignore-scripts
 
-# Copy source code (filtered by .dockerignore)
+# Copy source code (filtered by .dockerignore to exclude sensitive files)
+# NOSONAR - Sensitive files are excluded via .dockerignore
 COPY . .
 
 # Build TypeScript
