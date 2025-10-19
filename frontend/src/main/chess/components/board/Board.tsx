@@ -23,6 +23,7 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
   // State to track selected square
   const [selectedSquare, setSelectedSquare] = useState<SquareId | null>(null);
   const [validMoves, setValidMoves] = useState<SquareId[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const ranks = flipped ? [...RANKS].reverse() : RANKS;
   const files = flipped ? [...FILES].reverse() : FILES;
@@ -74,6 +75,42 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
     }
   };
 
+  // Handle drag start
+  const handleDragStart = (squareId: SquareId) => {
+    if (!pieces[squareId]) return;
+
+    // Only allow dragging piece if piece color is same as turn
+    const pieceColor = pieces[squareId]?.endsWith("white") ? "white" : "black";
+    const canDrag = (isWhiteTurn && pieceColor === "white") || (!isWhiteTurn && pieceColor === "black");
+    
+    if (canDrag) {
+      setIsDragging(true);
+      setSelectedSquare(squareId);
+      setValidMoves(calculateValidMoves(squareId, pieces));
+    }
+  };
+
+  // Handle drag over (allow drop)
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // Allow drop
+  };
+
+  // Handle drop
+  const handleDrop = (squareId: SquareId) => {
+    setIsDragging(false);
+
+    if (!selectedSquare) return;
+
+    // If dropping on a valid move square, execute the move
+    if (validMoves.includes(squareId)) {
+      movePiece(selectedSquare, squareId);
+    }
+
+    // Clear selection
+    setSelectedSquare(null);
+    setValidMoves([]);
+  };
+
   // Render the board
   return (
     <div className="wrapper">
@@ -88,6 +125,11 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
               const isSelected = selectedSquare === squareId;
               const isValidMove = validMoves.includes(squareId);
 
+              const canDrag = piece && (
+                (isWhiteTurn && piece.endsWith("white")) || 
+                (!isWhiteTurn && piece.endsWith("black"))
+              );
+
               return (
                 <Square
                   key={squareId}
@@ -97,7 +139,11 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
                   movePiece={movePiece}
                   isSelected={isSelected}
                   isValidMove={isValidMove}
+                  canDrag={canDrag}
                   onClick={() => handleSquareClick(squareId)}
+                  onDragStart={() => handleDragStart(squareId)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(squareId)}
                 />
               );
             })
