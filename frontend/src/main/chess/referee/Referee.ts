@@ -12,7 +12,7 @@ export default class Referee {
 
 
   setMoveCount(moveCount: number) {
-      this.moveCount = moveCount;
+    this.moveCount = moveCount;
   }
 
   /**
@@ -123,7 +123,7 @@ export default class Referee {
    * @param destPiece - The piece at the destination.
    * @returns Whether both pieces belong to the same player.
    */
-   private isOwnPiece(piece: string, destPiece: string): boolean {
+  private isOwnPiece(piece: string, destPiece: string): boolean {
     // Assumes piece strings are in the format 'type_color'
     const pieceColor = piece.split('_')[1];
     const destColor = destPiece.split('_')[1];
@@ -269,7 +269,7 @@ export default class Referee {
    */
   private findKing(isWhite: boolean): [number, number] | null {
     const kingPiece = isWhite ? "king_white" : "king_black";
-    
+
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
         if (this.board[y][x] === kingPiece) {
@@ -290,7 +290,7 @@ export default class Referee {
    */
   private isSquareUnderAttack(x: number, y: number, isWhiteKing: boolean): boolean {
     const opponentColor = isWhiteKing ? "black" : "white";
-    
+
     // Check all opponent pieces to see if they can attack this square
     for (let boardY = 0; boardY < 8; boardY++) {
       for (let boardX = 0; boardX < 8; boardX++) {
@@ -340,7 +340,7 @@ export default class Referee {
         // White pawns attack diagonally upward
         canAttack = Math.abs(dx) === 1 && dy === 1;
         break;
-      
+
       case "pawn_black":
         // Black pawns attack diagonally downward
         canAttack = Math.abs(dx) === 1 && dy === -1;
@@ -395,11 +395,11 @@ export default class Referee {
   isKingInCheck(board: (string | undefined)[][], isWhite: boolean): boolean {
     this.board = board;
     const kingPosition = this.findKing(isWhite);
-    
+
     if (!kingPosition) {
       return false; // King not found
     }
-    
+
     return this.isSquareUnderAttack(kingPosition[0], kingPosition[1], isWhite);
   }
 
@@ -424,12 +424,12 @@ export default class Referee {
   ): boolean {
     // Create a copy of the board to simulate the move
     const tempBoard = board.map(row => [...row]);
-    
+
     // Make the move on the temporary board
     const piece = tempBoard[fromY][fromX];
     tempBoard[toY][toX] = piece;
     tempBoard[fromY][fromX] = undefined;
-    
+
     // Check if the king would be in check after this move
     return this.isKingInCheck(tempBoard, isWhite);
   }
@@ -444,7 +444,7 @@ export default class Referee {
   hasValidMoves(board: (string | undefined)[][], isWhite: boolean): boolean {
     this.board = board;
     const color = isWhite ? "white" : "black";
-    
+
     // Check all pieces of the current player
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
@@ -454,7 +454,7 @@ export default class Referee {
           for (let newY = 0; newY < 8; newY++) {
             for (let newX = 0; newX < 8; newX++) {
               if (newX === x && newY === y) continue; // Skip same position
-              
+
               // Check if this move is valid according to piece rules
               if (this.isValidMove(board, x, y, newX, newY, piece, board[newY][newX])) {
                 // Check if this move would leave the king in check
@@ -467,7 +467,7 @@ export default class Referee {
         }
       }
     }
-    
+
     return false; // No valid moves found
   }
 
@@ -483,7 +483,7 @@ export default class Referee {
     if (!this.isKingInCheck(board, isWhite)) {
       return false;
     }
-    
+
     // If in check, see if there are any valid moves to escape
     return !this.hasValidMoves(board, isWhite);
   }
@@ -500,7 +500,7 @@ export default class Referee {
     if (this.isKingInCheck(board, isWhite)) {
       return false;
     }
-    
+
     // No valid moves available
     return !this.hasValidMoves(board, isWhite);
   }
@@ -516,15 +516,15 @@ export default class Referee {
     if (this.isCheckmate(board, isWhiteTurn)) {
       return 'checkmate';
     }
-    
+
     if (this.isStalemate(board, isWhiteTurn)) {
       return 'stalemate';
     }
-    
+
     if (this.isKingInCheck(board, isWhiteTurn)) {
       return 'check';
     }
-    
+
     return 'normal';
   }
 }

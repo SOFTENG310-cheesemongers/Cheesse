@@ -5,6 +5,7 @@ import "./Board.css";
 import Square from "./Square";
 import { FILES, RANKS, type SquareId } from "./BoardConfig";
 import { useMovePiece } from "../board/hooks/useMovePiece";
+import { GameStatus } from "../status/GameStatus";
 
 // ---------------- Board Component ---------------- //
 
@@ -13,8 +14,11 @@ import { useMovePiece } from "../board/hooks/useMovePiece";
  * @returns {JSX.Element}
  */
 
-export default function Board({ flipped = false }: { flipped?: boolean }) {
-  const { pieces, movePiece } = useMovePiece();
+export default function Board({ flipped = false, onCheckmate }: {
+  flipped?: boolean;
+  onCheckmate?: (losingPlayer: 'White' | 'Black') => void;
+}) {
+  const { pieces, movePiece, boardArray } = useMovePiece();
 
   const ranks = flipped ? [...RANKS].reverse() : RANKS;
   const files = flipped ? [...FILES].reverse() : FILES;
@@ -22,6 +26,7 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
   // Render the board
   return (
     <div className="wrapper">
+      <GameStatus board={boardArray} onCheckmate={onCheckmate} />
       <div className="board-wrapper">
         <div className="board">
           {/* Render the squares */}

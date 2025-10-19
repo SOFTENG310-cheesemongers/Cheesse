@@ -18,7 +18,7 @@ export function useMovePiece() {
   const recordMove = useRecordMove();
   const { undoLastMove: undoMoveLog, redoLastMove: redoMoveLog } = useMoveLog();
   const mp = useOptionalMultiplayer();
-  
+
   // Initialize pieces - if in multiplayer, reconstruct from server state
   const [pieces, setPieces] = useState(() => {
     if (mp && mp.state) {
@@ -39,7 +39,7 @@ export function useMovePiece() {
     }
     return initialPieces;
   });
-  
+
   const moveInProgress = useRef(false);
   const lastMoveDetailsLength = useRef(0);
   const lastProcessedUndoTrigger = useRef(0);
@@ -191,30 +191,30 @@ export function useMovePiece() {
     if (!mp || !mp.state) {
       return;
     }
-    
+
     const moves = (mp.state as any).moves || [];
     if (moves.length === 0) {
       return;
     }
-    
+
     // Reconstruct entire board from scratch using server's move list
     let board: Partial<Record<SquareId, PieceName>> = { ...initialPieces };
-    
+
     // Apply each move in sequence
     for (const move of moves) {
       const from = move.from as SquareId;
       const to = move.to as SquareId;
       const piece = board[from];
-      
+
       if (piece) {
         board[to] = piece;
         delete board[from];
       }
     }
-    
+
     // Update pieces state with reconstructed board
     setPieces(board);
-    
+
     // Rebuild board array from reconstructed board
     const newBoardArray = Array(8).fill(undefined).map(() => Array(8).fill(undefined));
     Object.entries(board).forEach(([square, piece]) => {
@@ -224,16 +224,16 @@ export function useMovePiece() {
       }
     });
     boardArray.current = newBoardArray;
-    
+
     // Update move count
     moveCountRef.current = moves.length;
-    
+
     // Update turn
     if (mp.state.activeColor) {
       const isWhiteTurn = mp.state.activeColor === 'white';
       changeTurn(isWhiteTurn);
     }
-    
+
     // Record only NEW moves in move log (to avoid duplicates on remount)
     if (moves.length > lastRecordedMoveCount.current) {
       const newMoves = moves.slice(lastRecordedMoveCount.current);
@@ -242,7 +242,7 @@ export function useMovePiece() {
       }
       lastRecordedMoveCount.current = moves.length;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mp?.lastMoveSeq]);
 
   /**
@@ -259,7 +259,7 @@ export function useMovePiece() {
       }
       const isWhitePiece = movingPiece.endsWith('_white');
       const myColor = mp.myColor;
-      
+
       // Only check that you're moving YOUR color pieces
       // Turn enforcement is handled by the server
       if ((myColor === 'white' && !isWhitePiece) || (myColor === 'black' && isWhitePiece)) {
@@ -267,32 +267,32 @@ export function useMovePiece() {
         return;
       }
     }
-    
+
     // In multiplayer, just validate and send to server - don't update local state
     if (mp && mp.roomId) {
       // Use ref to get latest pieces (avoid stale closure)
       const currentPieces = piecesRef.current;
       const piece = currentPieces[from];
       const destPiece = currentPieces[to];
-      
+
       if (!piece || from === to) return;
-      
+
       const [prevX, prevY] = squareToCoords(from);
       const [newX, newY] = squareToCoords(to);
-      
+
       // Validate move before sending to server
       referee.setMoveCount(moveCountRef.current);
       if (!referee.isValidMove(boardArray.current, prevX, prevY, newX, newY, piece, destPiece)) {
         return;
       }
-      
+
       // Send to server - board will update when server responds with moveAccepted
       // Move log will be updated in sync effect when server confirms
       mp.makeMove(from, to, piece);
-      
+
       return; // Don't update local state - wait for server
     }
-    
+
     // Local game: update state immediately
     setPieces(prev => {
       const piece = prev[from];
@@ -369,5 +369,5 @@ export function useMovePiece() {
     });
   }
 
-  return { pieces, movePiece };
+  return { pieces, movePiece, boardArray: boardArray.current };
 }

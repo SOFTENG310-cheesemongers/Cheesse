@@ -83,16 +83,27 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
     }
   };
 
+  // Handle checkmate detection
+  const handleCheckmate = (losingPlayer: 'White' | 'Black') => {
+    console.log('[GamePage] Checkmate detected:', losingPlayer, 'has been checkmated');
+    const winningPlayer = losingPlayer === 'White' ? 'Black' : 'White';
+
+    setForfeitingPlayer(losingPlayer);
+    setWinner(winningPlayer);
+    setGameForfeited(true); // This will show the game over overlay with "checkmate" context
+    setSelectedOption('checkmate'); // Use a different option to distinguish from forfeit
+  };
+
   // Handle forfeit confirmation
   const handleForfeitConfirm = () => {
     console.log('[GamePage] Forfeit confirmed. In multiplayer:', inMultiplayerGame);
     setShowConfirmForfeit(false);
-    
+
     if (inMultiplayerGame) {
       // In multiplayer, send resign and immediately return to menu
       console.log('[GamePage] Calling mp.resign()');
       mp?.resign();
-      
+
       // Return to menu immediately - don't wait for server response
       // This prevents getting stuck if connection is lost
       setTimeout(() => {
@@ -146,12 +157,16 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
         </div>
       )}
 
-      {/* Game Over - Forfeit Message */}
+      {/* Game Over - Forfeit/Checkmate Message */}
       {gameForfeited && (
         <div className="forfeit-overlay">
           <div className="forfeit-message">
-            <h2>Game Forfeited!</h2>
-            <p className="forfeiting-player">{forfeitingPlayer} has forfeited the game.</p>
+            <h2>{selectedOption === 'checkmate' ? 'Checkmate!' : 'Game Forfeited!'}</h2>
+            <p className="forfeiting-player">
+              {selectedOption === 'checkmate'
+                ? `${forfeitingPlayer} has been checkmated.`
+                : `${forfeitingPlayer} has forfeited the game.`
+              }</p>
             <p className="winner">{winner} Wins!</p>
             <button className="return-to-menu-button" onClick={handleReturnToMenu}>
               Return to Menu
@@ -164,7 +179,10 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
 
 
       <div className="board-timer-wrapper">
-  <Board flipped={!!(mp && mp.roomId && mp.myColor === 'black')} />
+        <Board
+          flipped={!!(mp && mp.roomId && mp.myColor === 'black')}
+          onCheckmate={handleCheckmate}
+        />
         {/** If selectedSeconds in the store is non-null we have a timer */}
         {useChessStore().selectedSeconds !== null ? <Timer /> : <div className="Timerfiller"></div>}
       </div>
