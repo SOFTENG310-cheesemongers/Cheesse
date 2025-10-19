@@ -35,85 +35,7 @@ export default class Referee {
     piece: string,
     destPiece?: string
   ): boolean {
-
-    // Set up the board state
-    this.board = board;
-    this.prevX = prevX;
-    this.prevY = prevY;
-    this.newX = newX;
-    this.newY = newY;
-    this.destPiece = destPiece;
-
-    // Calculate the difference in position
-    const dx = newX - prevX;
-    const dy = newY - prevY;
-
-    // checks if selected piece's colour is the one whose turn it is
-    if (((piece.split('_')[1] == "white") && (this.moveCount % 2 == 1)) || ((piece.split('_')[1] == "black") && (this.moveCount % 2 == 0))) {
-      return false;
-    }
-
-    // Check for blocking pieces
-    if (destPiece && this.isOwnPiece(piece, destPiece)) {
-      console.warn(`Invalid move: cannot capture own piece: ${destPiece}`);
-      return false;
-    }
-
-    // First validate the move based on piece type
-    let isValidPieceMove = false;
-
-    // Validate the move based on the piece type
-    switch (piece) {
-      case "pawn_white":
-        isValidPieceMove = this.validatePawn(true);
-        break;
-
-      case "pawn_black":
-        isValidPieceMove = this.validatePawn(false);
-        break;
-
-      case "rook_white":
-      case "rook_black":
-        isValidPieceMove = this.validateRook();
-        break;
-
-      case "bishop_white":
-      case "bishop_black":
-        isValidPieceMove = this.validateBishop();
-        break;
-
-      case "queen_white":
-      case "queen_black":
-        isValidPieceMove = this.validateQueen();
-        break;
-
-      case "king_white":
-      case "king_black":
-        isValidPieceMove = this.validateKing(dx, dy);
-        break;
-
-      case "knight_white":
-      case "knight_black":
-        isValidPieceMove = this.validateKnight(dx, dy);
-        break;
-
-      default:
-        isValidPieceMove = false;
-    }
-
-    // If the piece move is invalid, return false
-    if (!isValidPieceMove) {
-      return false;
-    }
-
-    // Check if this move would leave the king in check
-    const isWhite = piece.includes("white");
-    if (this.wouldMoveLeaveKingInCheck(board, prevX, prevY, newX, newY, isWhite)) {
-      console.warn(`Invalid move: would leave king in check`);
-      return false;
-    }
-
-    return true;
+    return this.validatePieceMove(board, prevX, prevY, newX, newY, piece, destPiece, false);
   }
 
   /**
@@ -306,6 +228,56 @@ export default class Referee {
   }
 
   /**
+   * Validates a piece move using the appropriate validation method.
+   *
+   * @param piece - The piece type to validate.
+   * @param dx - The x-coordinate difference.
+   * @param dy - The y-coordinate difference.
+   * @param isAttackPattern - Whether to use attack patterns (for pawn diagonal attacks).
+   * @returns Whether the move is valid for this piece type.
+   */
+  private validatePieceByType(piece: string, dx: number, dy: number, isAttackPattern: boolean = false): boolean {
+    switch (piece) {
+      case "pawn_white":
+        if (isAttackPattern) {
+          // White pawns attack diagonally upward
+          return Math.abs(dx) === 1 && dy === 1;
+        }
+        return this.validatePawn(true);
+
+      case "pawn_black":
+        if (isAttackPattern) {
+          // Black pawns attack diagonally downward
+          return Math.abs(dx) === 1 && dy === -1;
+        }
+        return this.validatePawn(false);
+
+      case "rook_white":
+      case "rook_black":
+        return this.validateRook();
+
+      case "bishop_white":
+      case "bishop_black":
+        return this.validateBishop();
+
+      case "queen_white":
+      case "queen_black":
+        return this.validateQueen();
+
+      case "king_white":
+      case "king_black":
+        return this.validateKing(dx, dy);
+
+      case "knight_white":
+      case "knight_black":
+        return this.validateKnight(dx, dy);
+
+      default:
+        return false;
+    }
+  }
+
+  /**
    * Checks if a piece can attack a specific square.
    *
    * @param piece - The piece to check.
@@ -316,9 +288,6 @@ export default class Referee {
    * @returns Whether the piece can attack the target square.
    */
   private canPieceAttackSquare(piece: string, fromX: number, fromY: number, toX: number, toY: number): boolean {
-    const dx = toX - fromX;
-    const dy = toY - fromY;
-
     // Store original values
     const originalPrevX = this.prevX;
     const originalPrevY = this.prevY;
@@ -333,47 +302,11 @@ export default class Referee {
     this.newY = toY;
     this.destPiece = this.board[toY][toX];
 
-    let canAttack = false;
+    const dx = toX - fromX;
+    const dy = toY - fromY;
 
-    switch (piece) {
-      case "pawn_white":
-        // White pawns attack diagonally upward
-        canAttack = Math.abs(dx) === 1 && dy === 1;
-        break;
-
-      case "pawn_black":
-        // Black pawns attack diagonally downward
-        canAttack = Math.abs(dx) === 1 && dy === -1;
-        break;
-
-      case "rook_white":
-      case "rook_black":
-        canAttack = this.validateRook();
-        break;
-
-      case "bishop_white":
-      case "bishop_black":
-        canAttack = this.validateBishop();
-        break;
-
-      case "queen_white":
-      case "queen_black":
-        canAttack = this.validateQueen();
-        break;
-
-      case "king_white":
-      case "king_black":
-        canAttack = this.validateKing(dx, dy);
-        break;
-
-      case "knight_white":
-      case "knight_black":
-        canAttack = this.validateKnight(dx, dy);
-        break;
-
-      default:
-        canAttack = false;
-    }
+    // Use attack patterns (especially for pawn diagonal attacks)
+    const canAttack = this.validatePieceByType(piece, dx, dy, true);
 
     // Restore original values
     this.prevX = originalPrevX;
@@ -459,8 +392,8 @@ export default class Referee {
               if (newX === x && newY === y) continue; // Skip same position
 
               // For checkmate detection, we need to check if ANY move would get out of check
-              // Use a simpler validation that bypasses the turn checking
-              if (this.isValidMoveForCheckmate(board, x, y, newX, newY, piece, board[newY][newX])) {
+              // Use validation that bypasses the turn checking
+              if (this.validatePieceMove(board, x, y, newX, newY, piece, board[newY][newX], true)) {
                 validMoveCount++;
                 console.log(`Valid move found: ${piece} from (${x},${y}) to (${newX},${newY})`);
                 return true; // Found at least one valid move
@@ -476,17 +409,18 @@ export default class Referee {
   }
 
   /**
-   * Simplified move validation specifically for checkmate detection.
-   * This bypasses turn checking and focuses on piece movement rules and check avoidance.
+   * Validates piece movement rules without turn checking.
+   * Used for both normal moves and checkmate detection.
    */
-  private isValidMoveForCheckmate(
+  private validatePieceMove(
     board: (string | undefined)[][],
     prevX: number,
     prevY: number,
     newX: number,
     newY: number,
     piece: string,
-    destPiece?: string
+    destPiece?: string,
+    skipTurnCheck: boolean = false
   ): boolean {
     // Set up the board state
     this.board = board;
@@ -500,43 +434,24 @@ export default class Referee {
     const dx = newX - prevX;
     const dy = newY - prevY;
 
+    // Check turn validation only if not skipping
+    if (!skipTurnCheck) {
+      if (((piece.split('_')[1] == "white") && (this.moveCount % 2 == 1)) ||
+        ((piece.split('_')[1] == "black") && (this.moveCount % 2 == 0))) {
+        return false;
+      }
+    }
+
     // Check for blocking pieces (can't capture own piece)
     if (destPiece && this.isOwnPiece(piece, destPiece)) {
+      if (!skipTurnCheck) {
+        console.warn(`Invalid move: cannot capture own piece: ${destPiece}`);
+      }
       return false;
     }
 
-    // Validate the move based on the piece type
-    let isValidPieceMove = false;
-    switch (piece) {
-      case "pawn_white":
-        isValidPieceMove = this.validatePawn(true);
-        break;
-      case "pawn_black":
-        isValidPieceMove = this.validatePawn(false);
-        break;
-      case "rook_white":
-      case "rook_black":
-        isValidPieceMove = this.validateRook();
-        break;
-      case "bishop_white":
-      case "bishop_black":
-        isValidPieceMove = this.validateBishop();
-        break;
-      case "queen_white":
-      case "queen_black":
-        isValidPieceMove = this.validateQueen();
-        break;
-      case "king_white":
-      case "king_black":
-        isValidPieceMove = this.validateKing(dx, dy);
-        break;
-      case "knight_white":
-      case "knight_black":
-        isValidPieceMove = this.validateKnight(dx, dy);
-        break;
-      default:
-        isValidPieceMove = false;
-    }
+    // Validate the move based on the piece type using standard movement patterns
+    const isValidPieceMove = this.validatePieceByType(piece, dx, dy, false);
 
     if (!isValidPieceMove) {
       return false;
@@ -545,6 +460,9 @@ export default class Referee {
     // Check if this move would leave the king in check
     const pieceIsWhite = piece.includes("white");
     if (this.wouldMoveLeaveKingInCheck(board, prevX, prevY, newX, newY, pieceIsWhite)) {
+      if (!skipTurnCheck) {
+        console.warn(`Invalid move: would leave king in check`);
+      }
       return false;
     }
 
