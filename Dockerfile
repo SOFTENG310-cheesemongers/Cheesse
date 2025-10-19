@@ -1,6 +1,10 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
 
+# Accept build argument
+ARG VITE_BACKEND_URL=http://localhost:8080
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+
 COPY ./frontend/package*.json ./frontend/
 WORKDIR /app/frontend
 RUN npm install --ignore-scripts
