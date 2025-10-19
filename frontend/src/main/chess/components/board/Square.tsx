@@ -77,8 +77,17 @@ export default function Square({
   return (
     <div
       className={`square ${isDark ? "dark" : "light"} ${isSelected ? "selected" : ""}`}
-      aria-label={`square ${id}`}
+      role="button"
+      tabIndex={0}
+      aria-label={`square ${id}${piece ? ` with ${piece.replace('_', ' ')}` : ''}`}
+      aria-pressed={isSelected}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       draggable={canDrag}
       onDragStart={handleDragStart}
       onDragOver={onDragOver}

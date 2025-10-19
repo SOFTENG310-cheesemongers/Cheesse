@@ -153,13 +153,13 @@ function calculateStraightLineMoves(
       const square = `${FILES[newFile]}${newRank}` as SquareId;
       const targetPiece = pieces[square];
 
-      if (!targetPiece) {
-        moves.push(square);
-      } else {
+      if (targetPiece) {
         if (isOpponentPiece(targetPiece, isWhite)) {
           moves.push(square);
         }
         break;
+      } else {
+        moves.push(square);
       }
 
       newFile += fileDelta;

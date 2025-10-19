@@ -103,11 +103,11 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
           {/* Render the squares */}
           {ranks.map((rank, rIdx) =>
             files.map((file, fIdx) => {
-              const squareId = `${file}${rank}` as SquareId;
-              const piece = pieces[squareId];
+              const squareId = `${file}${rank}`;
+              const piece = pieces[squareId as SquareId];
               const isDark = (rIdx + fIdx) % 2 === 1;
               const isSelected = selectedSquare === squareId;
-              const isValidMove = validMoves.includes(squareId);
+              const isValidMove = validMoves.includes(squareId as SquareId);
 
               // Sets a piece draggable if it's color's turn
               const canDrag = piece && (
@@ -118,17 +118,17 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
               return (
                 <Square
                   key={squareId}
-                  id={squareId}
+                  id={squareId as SquareId}
                   isDark={isDark}
                   piece={piece}
                   movePiece={movePiece}
                   isSelected={isSelected}
                   isValidMove={isValidMove}
                   canDrag={canDrag}
-                  onClick={() => handleSquareClick(squareId)}
-                  onDragStart={() => handleDragStart(squareId)}
+                  onClick={() => handleSquareClick(squareId as SquareId)}
+                  onDragStart={() => handleDragStart(squareId as SquareId)}
                   onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(squareId)}
+                  onDrop={() => handleDrop(squareId as SquareId)}
                 />
               );
             })
