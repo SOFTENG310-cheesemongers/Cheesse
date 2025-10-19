@@ -63,6 +63,10 @@ export function useMovePiece() {
   const moveCountRef = useRef(0);
 
   // Persistent board representation
+  // TODO: Consider refactoring - boardArray is manually updated in 5 places:
+  // 1. Initialization (below), 2. Multiplayer sync, 3. Local moves, 4. Undo, 5. Redo
+  // Could use a single useEffect(() => { sync from pieces }, [pieces]) instead.
+  // Current approach works correctly but is less maintainable.
   const boardArray = useRef<(string | undefined)[][]>(
     Array(8).fill(null).map(() => Array(8).fill(undefined))
   );
