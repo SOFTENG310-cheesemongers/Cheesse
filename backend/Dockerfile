@@ -10,9 +10,10 @@ COPY package*.json ./
 # Install dependencies with --ignore-scripts for security
 RUN npm ci --ignore-scripts
 
-# Copy source code (filtered by .dockerignore to exclude sensitive files)
-# NOSONAR - Sensitive files are excluded via .dockerignore
-COPY . .
+# Copy only necessary source files (explicit to avoid sensitive data)
+COPY src/ ./src/
+COPY tsconfig.json ./
+COPY vitest.config.ts ./
 
 # Build TypeScript
 RUN npm run build
