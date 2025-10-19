@@ -3,7 +3,7 @@
 // ---------------- Imports ---------------- //
 import "./Board.css";
 import Square from "./Square";
-import { FILES, RANKS, type SquareId } from "./BoardConfig";
+import { FILES, RANKS, type PieceName, type SquareId } from "./BoardConfig";
 import { useMovePiece } from "../board/hooks/useMovePiece";
 import { useState } from "react";
 import { calculateValidMoves } from "../../referee/moveCalculator";
@@ -26,70 +26,59 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
   // State to show valid moves of selected piece
   const [validMoves, setValidMoves] = useState<SquareId[]>([]);
 
-  const [isDragging, setIsDragging] = useState(false);
-
   const ranks = flipped ? [...RANKS].reverse() : RANKS;
   const files = flipped ? [...FILES].reverse() : FILES;
 
+  // Check if piece color matches current turn
+  const isCurrentPlayersPiece = (piece: PieceName | undefined): boolean => {
+    if (!piece) return false;
+    const pieceColor = piece.endsWith("white") ? "white" : "black";
+    return (isWhiteTurn && pieceColor === "white") || (!isWhiteTurn && pieceColor === "black");
+  };
+
+  // Clear selection state
+  const clearSelection = () => {
+    setSelectedSquare(null);
+    setValidMoves([]);
+  };
+
+  // Select a new square
+  const selectSquare = (squareId: SquareId) => {
+    setSelectedSquare(squareId);
+    setValidMoves(calculateValidMoves(squareId, pieces));
+  };
+
+  // Handle click when a square is already selected
+  const handleClickWithSelection = (squareId: SquareId) => {
+    if (selectedSquare === squareId) {
+      clearSelection();
+    } else if (validMoves.includes(squareId)) {
+
+      if (selectedSquare !== null) {
+        movePiece(selectedSquare, squareId);
+      }
+      
+      clearSelection();
+    } else if (pieces[squareId] && isCurrentPlayersPiece(pieces[squareId])) {
+      selectSquare(squareId);
+    } else {
+      clearSelection();
+    }
+  };
+
   // Handle square click for selection or movement
   const handleSquareClick = (squareId: SquareId) => {
-    // If there's already a selected square
     if (selectedSquare) {
-      // If it's the same square, deselect it
-      if (selectedSquare === squareId) {
-        setSelectedSquare(null);
-        setValidMoves([]);
-      } 
-
-      // If the clicked square is a valid move destination, move the piece
-      else if (validMoves.includes(squareId)) {
-        // Execute the move (switches turn in movePiece)
-        movePiece(selectedSquare, squareId);
-        
-        // Clear selection
-        setSelectedSquare(null);
-        setValidMoves([]);
-      }
-
-      // If theres another piece of the same colour, select it instead
-      else if (pieces[squareId] && pieces[selectedSquare] &&
-                pieces[squareId]?.endsWith(pieces[selectedSquare]!.endsWith("white") ? "white" : "black")) {
-        setSelectedSquare(squareId);
-        setValidMoves(calculateValidMoves(squareId, pieces));
-      }
-      
-      // If theres no piece, deselect
-      else {
-        setSelectedSquare(null);
-        setValidMoves([]);
-      }
-    } 
-
-    // If there's no selected square and the clicked square has a piece, select it
-    else if (pieces[squareId]) {
-      // Only allow selecting piece if piece color is same as turn
-      const pieceColor = pieces[squareId]?.endsWith("white") ? "white" : "black";
-      const canSelect = (isWhiteTurn && pieceColor === "white") || (!isWhiteTurn && pieceColor === "black");
-      
-      if (canSelect) {
-        setSelectedSquare(squareId);
-        setValidMoves(calculateValidMoves(squareId, pieces));
-      }
+      handleClickWithSelection(squareId);
+    } else if (pieces[squareId] && isCurrentPlayersPiece(pieces[squareId])) {
+      selectSquare(squareId);
     }
   };
 
   // Handle drag start
   const handleDragStart = (squareId: SquareId) => {
-    if (!pieces[squareId]) return;
-
-    // Only allow dragging piece if piece color is same as turn
-    const pieceColor = pieces[squareId]?.endsWith("white") ? "white" : "black";
-    const canDrag = (isWhiteTurn && pieceColor === "white") || (!isWhiteTurn && pieceColor === "black");
-    
-    if (canDrag) {
-      setIsDragging(true);
-      setSelectedSquare(squareId);
-      setValidMoves(calculateValidMoves(squareId, pieces));
+    if (pieces[squareId] && isCurrentPlayersPiece(pieces[squareId])) {
+      selectSquare(squareId);
     }
   };
 
@@ -100,18 +89,10 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
 
   // Handle drop
   const handleDrop = (squareId: SquareId) => {
-    setIsDragging(false);
-
-    if (!selectedSquare) return;
-
-    // If dropping on a valid move square, execute the move
-    if (validMoves.includes(squareId)) {
+    if (selectedSquare && validMoves.includes(squareId)) {
       movePiece(selectedSquare, squareId);
     }
-
-    // Clear selection
-    setSelectedSquare(null);
-    setValidMoves([]);
+    clearSelection();
   };
 
   // Render the board

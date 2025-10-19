@@ -14,7 +14,7 @@ export function calculateValidMoves(
   const piece = pieces[squareId];
   if (!piece) return [];
 
-  const [file, rank] = [squareId[0], parseInt(squareId[1])];
+  const [file, rank] = [squareId[0], Number.parseInt(squareId[1])];
   const fileIndex = FILES.indexOf(file as any);
   const isWhite = piece.endsWith("white");
   const pieceType = piece.split("_")[0];
@@ -54,6 +54,13 @@ function canMoveTo(square: SquareId, pieces: Pieces, isWhite: boolean): boolean 
 }
 
 /**
+ * Check if a piece is an opponent's piece
+ */
+function isOpponentPiece(piece: PieceName | undefined, isWhite: boolean): boolean {
+  return piece?.endsWith(isWhite ? "black" : "white") ?? false;
+}
+
+/**
  * Check if coordinates are within the board
  */
 function isInBounds(file: number, rank: number): boolean {
@@ -65,12 +72,32 @@ function calculatePawnMoves(file: string, rank: number, pieces: Pieces, isWhite:
   const direction = isWhite ? 1 : -1;
   const startRank = isWhite ? 2 : 7;
 
-  // Move forward one
+  // Add forward moves
+  addPawnForwardMoves(moves, file, rank, direction, startRank, pieces);
+
+  // Add capture moves
+  addPawnCaptureMoves(moves, file, rank, direction, pieces, isWhite);
+
+  return moves;
+}
+
+/**
+ * Add forward pawn moves (one or two squares)
+ */
+function addPawnForwardMoves(
+  moves: SquareId[],
+  file: string,
+  rank: number,
+  direction: number,
+  startRank: number,
+  pieces: Pieces
+): void {
   const oneForward = `${file}${rank + direction}` as SquareId;
+  
   if (!pieces[oneForward]) {
     moves.push(oneForward);
 
-    // Move forward two if at starting pos
+    // Move forward two if at starting position
     if (rank === startRank) {
       const twoForward = `${file}${rank + direction * 2}` as SquareId;
       if (!pieces[twoForward]) {
@@ -78,22 +105,32 @@ function calculatePawnMoves(file: string, rank: number, pieces: Pieces, isWhite:
       }
     }
   }
+}
 
-  // Capture diagonally (no enpassant)
+/**
+ * Add diagonal capture moves for pawns
+ */
+function addPawnCaptureMoves(
+  moves: SquareId[],
+  file: string,
+  rank: number,
+  direction: number,
+  pieces: Pieces,
+  isWhite: boolean
+): void {
   const fileIndex = FILES.indexOf(file as any);
+  
   for (const fileDelta of [-1, 1]) {
     const newFileIndex = fileIndex + fileDelta;
     
     if (isInBounds(newFileIndex, rank + direction)) {
       const captureSquare = `${FILES[newFileIndex]}${rank + direction}` as SquareId;
-      const targetPiece = pieces[captureSquare];
-      if (targetPiece && targetPiece.endsWith(isWhite ? "black" : "white")) {
+      
+      if (isOpponentPiece(pieces[captureSquare], isWhite)) {
         moves.push(captureSquare);
       }
     }
   }
-
-  return moves;
 }
 
 /**
@@ -119,7 +156,7 @@ function calculateStraightLineMoves(
       if (!targetPiece) {
         moves.push(square);
       } else {
-        if (targetPiece.endsWith(isWhite ? "black" : "white")) {
+        if (isOpponentPiece(targetPiece, isWhite)) {
           moves.push(square);
         }
         break;
