@@ -1,8 +1,7 @@
 /* This component represents a square on the chessboard. */
 
 // ---------------- Imports ---------------- //
-import { useDrop } from "react-dnd";
-import Piece, { ItemTypes } from "./Piece";
+import Piece from "./Piece";
 import { type PieceName, type SquareId, pieceMap } from "./BoardConfig";
 
 /**
@@ -19,6 +18,7 @@ interface SquareProps {
   readonly piece?: PieceName;
   readonly movePiece: (from: SquareId, to: SquareId) => void;
   readonly isSelected?: boolean;
+  readonly isValidMove?: boolean;
   readonly onClick: () => void;
 }
 
@@ -29,7 +29,7 @@ interface SquareProps {
  * @param {SquareProps} props - The props for the square.
  * @returns {JSX.Element} - The rendered square component.
  */
-export default function Square({ id, isDark, piece, isSelected, onClick }: Readonly<SquareProps>) {
+export default function Square({ id, isDark, piece, isSelected, isValidMove, onClick }: Readonly<SquareProps>) {
 
   // Render the square
   return (
@@ -40,6 +40,7 @@ export default function Square({ id, isDark, piece, isSelected, onClick }: Reado
     >
       {piece && <Piece id={id} src={pieceMap[piece]} />}
       {isSelected && <div className="selection-highlight" />}
+      {isValidMove && <div className={`valid-move-indicator`} />}
     </div>
   );
 }

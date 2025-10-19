@@ -74,7 +74,11 @@
 }
 
 /* Square styles */
-.square { position: relative }
+.square {
+    position: relative;
+    cursor: pointer;
+}
+
 .piece {
     position: absolute;
     left: 50%;
@@ -95,4 +99,17 @@
   background: rgba(0, 200, 0, 0.4);
   pointer-events: none;
   z-index: 1; /* Highlight below piece */
+}
+
+/* Valid move indicator */
+.valid-move-indicator {
+  position: absolute;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 25%;
+  height: 25%;
+  background: rgba(0, 150, 0, 0.5);
+  border-radius: 50%; /* Creates circle */
+  pointer-events: none;
 }
