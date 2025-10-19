@@ -2,13 +2,14 @@
 
 // ---------------- Imports ---------------- //
 import { useState, useRef, useEffect } from "react";
-import Referee from "../../../referee/Referee";
 import { useChessStore } from '../../../../app/chessStore';
 import { type SquareId, type PieceName, initialPieces } from "../BoardConfig";
 import { squareToCoords } from "../../../utils/chessUtils";
 import { useRecordMove } from "./useRecordMove";
 import { useOptionalMultiplayer } from '../../../../multiplayer/MultiplayerProvider';
 import { useMoveLog } from "../../history/moveLogStore";
+import { calculateValidMoves } from "../../../referee/moveCalculator";
+
 
 /**
  * Custom hook to manage piece movement in the chess game.
@@ -44,9 +45,6 @@ export function useMovePiece() {
   const lastMoveDetailsLength = useRef(0);
   const lastProcessedUndoTrigger = useRef(0);
   const lastProcessedRedoTrigger = useRef(0);
-
-  // Persistent Referee instance
-  const referee = useRef(new Referee()).current;
 
   // chess store functions
   const { changeTurn, addMoveDetails, moveDetails, undoTrigger, undoLastMove, redoTrigger, redoLastMove, setMenuResult } = useChessStore();
@@ -253,17 +251,15 @@ export function useMovePiece() {
     if (mp && mp.roomId) {
       // Use ref to get latest pieces (avoid stale closure)
       const currentPieces = piecesRef.current;
-      const movingPiece = currentPieces[from];
-      if (!movingPiece) {
-        return;
-      }
-      const isWhitePiece = movingPiece.endsWith('_white');
-      const myColor = mp.myColor;
+      const piece = currentPieces[from];
       
-      // Only check that you're moving YOUR color pieces
-      // Turn enforcement is handled by the server
-      if ((myColor === 'white' && !isWhitePiece) || (myColor === 'black' && isWhitePiece)) {
-        console.warn('[useMovePiece] Cannot move opponent piece');
+      if (!piece || from === to) return;
+      
+      
+      // Validate move using moveCalculator
+      const validMoves = calculateValidMoves(from, currentPieces);
+      if (!validMoves.includes(to)) {
+        console.warn(`[useMovePiece] Invalid move from ${from} to ${to}asdfasf`);
         return;
       }
     }
@@ -273,16 +269,13 @@ export function useMovePiece() {
       // Use ref to get latest pieces (avoid stale closure)
       const currentPieces = piecesRef.current;
       const piece = currentPieces[from];
-      const destPiece = currentPieces[to];
       
       if (!piece || from === to) return;
       
-      const [prevX, prevY] = squareToCoords(from);
-      const [newX, newY] = squareToCoords(to);
-      
       // Validate move before sending to server
-      referee.setMoveCount(moveCountRef.current);
-      if (!referee.isValidMove(boardArray.current, prevX, prevY, newX, newY, piece, destPiece)) {
+      const validMoves = calculateValidMoves(from, currentPieces);
+      if (!validMoves.includes(to)) {
+        console.warn(`[useMovePiece] Invalid move from ${from} to ${to}`);
         return;
       }
       
@@ -306,8 +299,9 @@ export function useMovePiece() {
       console.log('[useMovePiece] Validating move:', { from, to, piece, prevX, prevY, newX, newY, moveCount: moveCountRef.current });
       console.log('[useMovePiece] Board state:', boardArray.current);
 
-      referee.setMoveCount(moveCountRef.current);
-      if (!referee.isValidMove(boardArray.current, prevX, prevY, newX, newY, piece, destPiece)) {
+      // Validate move using moveCalculator
+      const validMoves = calculateValidMoves(from, prev);
+      if (!validMoves.includes(to)) {
         console.warn(`[useMovePiece] Invalid move from ${from} to ${to}. Piece: ${piece}, DestPiece: ${destPiece}`);
         return prev;
       }
