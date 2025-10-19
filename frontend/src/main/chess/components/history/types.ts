@@ -16,4 +16,5 @@ export interface MoveLogState {
     addMove: (move: string) => void;
     undoLastMove: () => void;
     redoLastMove: (move: string) => void;
+    resetMoveLog: () => void;
 }

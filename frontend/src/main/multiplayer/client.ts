@@ -52,8 +52,42 @@ export class MultiplayerClient {
       console.warn('[MultiplayerClient] Could not access socket manager!');
     }
     if (!this.socket.connected) {
+      console.log('[MultiplayerClient] Connecting to server...');
       this.socket.connect();
     }
+  }
+
+  // Wait for connection to be established
+  async waitForConnection(timeoutMs: number = 5000): Promise<void> {
+    if (this.socket.connected) return Promise.resolve();
+    
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Connection timeout'));
+      }, timeoutMs);
+      
+      const onConnect = () => {
+        clearTimeout(timeout);
+        this.socket.off('connect', onConnect);
+        this.socket.off('connect_error', onError);
+        resolve();
+      };
+      
+      const onError = (err: any) => {
+        clearTimeout(timeout);
+        this.socket.off('connect', onConnect);
+        this.socket.off('connect_error', onError);
+        reject(err);
+      };
+      
+      this.socket.once('connect', onConnect);
+      this.socket.once('connect_error', onError);
+      
+      // Start connection if not already connecting
+      if (!this.socket.connected) {
+        this.connect();
+      }
+    });
   }
 
   disconnect() {
@@ -105,8 +139,14 @@ export class MultiplayerClient {
     return Promise.race([p, t]);
   }
 
-  createRoom(preferredColor?: 'white' | 'black') {
-    if (!this.isConnected()) return Promise.reject(new Error('not_connected'));
+  async createRoom(preferredColor?: 'white' | 'black') {
+    // Wait for connection if not already connected
+    if (!this.isConnected()) {
+      console.log('[MultiplayerClient] Not connected, waiting for connection...');
+      await this.waitForConnection();
+    }
+    
+    console.log('[MultiplayerClient] Creating room...');
     const p = new Promise<JoinedDto>((resolve, reject) => {
       this.socket.emit('createRoom', { preferredColor }, (payload: JoinedDto | { error: string }) => {
         if (!payload) return reject(new Error('no_response'));
@@ -117,8 +157,14 @@ export class MultiplayerClient {
     return this.withTimeout(p);
   }
 
-  joinRoom(roomId: string) {
-    if (!this.isConnected()) return Promise.reject(new Error('not_connected'));
+  async joinRoom(roomId: string) {
+    // Wait for connection if not already connected
+    if (!this.isConnected()) {
+      console.log('[MultiplayerClient] Not connected, waiting for connection...');
+      await this.waitForConnection();
+    }
+    
+    console.log('[MultiplayerClient] Joining room:', roomId);
     const p = new Promise<JoinedDto | { error: string }>((resolve, reject) => {
       this.socket.emit('joinRoom', { roomId }, (payload: any) => {
         if (!payload) return reject(new Error('no_response'));

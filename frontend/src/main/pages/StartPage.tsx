@@ -10,6 +10,7 @@ import type { Color } from '../multiplayer/types';
 import ConnectStatus from '../components/ConnectStatus';
 import RoomForm from './online/RoomForm';
 import RoomInfo from './online/RoomInfo';
+import { useMoveLog } from '../chess/components/history/moveLogStore';
 
 /**
  * StartPage component - Displays the initial game setup options.
@@ -113,13 +114,18 @@ export default function StartPage() {
 
 function GameWithProvider({ initialSeconds, onReturnToMenu }: { initialSeconds: number; onReturnToMenu: () => void }) {
     // This component runs inside ChessProvider and can set selectedSeconds
-    const { setSelectedSeconds } = useChessStore();
+    const { setSelectedSeconds, resetGame } = useChessStore();
+    const { resetMoveLog } = useMoveLog();
 
     useEffect(() => {
+        // Reset game state when entering a new game
+        resetGame();
+        resetMoveLog();
         if (initialSeconds > 0) setSelectedSeconds(initialSeconds);
         else setSelectedSeconds(null);
-        // intentionally only run on mount/change of initialSeconds
-    }, [initialSeconds, setSelectedSeconds]);
+        // Only run on mount or when initialSeconds changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialSeconds]);
 
     return <GamePage onReturnToMenu={onReturnToMenu} />;
 }
@@ -131,12 +137,19 @@ function OnlineLobby({ onCancel, onJoined }: { onCancel: () => void; onJoined: (
     const [inRoom, setInRoom] = useState(false);
     const [isHost, setIsHost] = useState(false);
 
+    // Reset game state when lobby mounts (new game)
+    useEffect(() => {
+        mp.resetGameState();
+    }, []);
+
     // Only keep retrying while this component is mounted — use stable connect/disconnect
     const { connect, disconnect } = mp;
     useEffect(() => {
         try { connect(); } catch { /* ignore */ }
+        // DON'T disconnect on unmount - we might be transitioning to the game!
+        // The MultiplayerProvider itself will handle cleanup when it unmounts
         return () => { 
-            try { disconnect(); } catch { /* ignore */ } 
+            // Cleanup is handled by MultiplayerProvider
         };
     }, [connect, disconnect]);
 
