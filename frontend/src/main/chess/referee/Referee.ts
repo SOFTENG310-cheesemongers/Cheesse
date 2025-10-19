@@ -444,6 +444,9 @@ export default class Referee {
   hasValidMoves(board: (string | undefined)[][], isWhite: boolean): boolean {
     this.board = board;
     const color = isWhite ? "white" : "black";
+    let validMoveCount = 0;
+
+    console.log(`Checking valid moves for ${color}...`);
 
     // Check all pieces of the current player
     for (let y = 0; y < 8; y++) {
@@ -455,12 +458,12 @@ export default class Referee {
             for (let newX = 0; newX < 8; newX++) {
               if (newX === x && newY === y) continue; // Skip same position
 
-              // Check if this move is valid according to piece rules
-              if (this.isValidMove(board, x, y, newX, newY, piece, board[newY][newX])) {
-                // Check if this move would leave the king in check
-                if (!this.wouldMoveLeaveKingInCheck(board, x, y, newX, newY, isWhite)) {
-                  return true; // Found at least one valid move
-                }
+              // For checkmate detection, we need to check if ANY move would get out of check
+              // Use a simpler validation that bypasses the turn checking
+              if (this.isValidMoveForCheckmate(board, x, y, newX, newY, piece, board[newY][newX])) {
+                validMoveCount++;
+                console.log(`Valid move found: ${piece} from (${x},${y}) to (${newX},${newY})`);
+                return true; // Found at least one valid move
               }
             }
           }
@@ -468,7 +471,84 @@ export default class Referee {
       }
     }
 
+    console.log(`Total valid moves found: ${validMoveCount}`);
     return false; // No valid moves found
+  }
+
+  /**
+   * Simplified move validation specifically for checkmate detection.
+   * This bypasses turn checking and focuses on piece movement rules and check avoidance.
+   */
+  private isValidMoveForCheckmate(
+    board: (string | undefined)[][],
+    prevX: number,
+    prevY: number,
+    newX: number,
+    newY: number,
+    piece: string,
+    destPiece?: string
+  ): boolean {
+    // Set up the board state
+    this.board = board;
+    this.prevX = prevX;
+    this.prevY = prevY;
+    this.newX = newX;
+    this.newY = newY;
+    this.destPiece = destPiece;
+
+    // Calculate the difference in position
+    const dx = newX - prevX;
+    const dy = newY - prevY;
+
+    // Check for blocking pieces (can't capture own piece)
+    if (destPiece && this.isOwnPiece(piece, destPiece)) {
+      return false;
+    }
+
+    // Validate the move based on the piece type
+    let isValidPieceMove = false;
+    switch (piece) {
+      case "pawn_white":
+        isValidPieceMove = this.validatePawn(true);
+        break;
+      case "pawn_black":
+        isValidPieceMove = this.validatePawn(false);
+        break;
+      case "rook_white":
+      case "rook_black":
+        isValidPieceMove = this.validateRook();
+        break;
+      case "bishop_white":
+      case "bishop_black":
+        isValidPieceMove = this.validateBishop();
+        break;
+      case "queen_white":
+      case "queen_black":
+        isValidPieceMove = this.validateQueen();
+        break;
+      case "king_white":
+      case "king_black":
+        isValidPieceMove = this.validateKing(dx, dy);
+        break;
+      case "knight_white":
+      case "knight_black":
+        isValidPieceMove = this.validateKnight(dx, dy);
+        break;
+      default:
+        isValidPieceMove = false;
+    }
+
+    if (!isValidPieceMove) {
+      return false;
+    }
+
+    // Check if this move would leave the king in check
+    const pieceIsWhite = piece.includes("white");
+    if (this.wouldMoveLeaveKingInCheck(board, prevX, prevY, newX, newY, pieceIsWhite)) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -513,18 +593,32 @@ export default class Referee {
    * @returns The game status: 'normal', 'check', 'checkmate', or 'stalemate'.
    */
   getGameStatus(board: (string | undefined)[][], isWhiteTurn: boolean): 'normal' | 'check' | 'checkmate' | 'stalemate' {
-    if (this.isCheckmate(board, isWhiteTurn)) {
+    this.board = board;
+
+    const isInCheck = this.isKingInCheck(board, isWhiteTurn);
+    const hasValidMovesAvailable = this.hasValidMoves(board, isWhiteTurn);
+
+    console.log(`Game status check - Turn: ${isWhiteTurn ? 'White' : 'Black'}, In Check: ${isInCheck}, Has Valid Moves: ${hasValidMovesAvailable}`);
+
+    // Checkmate: In check AND no valid moves
+    if (isInCheck && !hasValidMovesAvailable) {
+      console.log('CHECKMATE detected!');
       return 'checkmate';
     }
 
-    if (this.isStalemate(board, isWhiteTurn)) {
+    // Stalemate: Not in check AND no valid moves
+    if (!isInCheck && !hasValidMovesAvailable) {
+      console.log('STALEMATE detected!');
       return 'stalemate';
     }
 
-    if (this.isKingInCheck(board, isWhiteTurn)) {
+    // Check: In check but has valid moves
+    if (isInCheck) {
+      console.log('CHECK detected!');
       return 'check';
     }
 
+    // Normal: Not in check and has valid moves
     return 'normal';
   }
 }

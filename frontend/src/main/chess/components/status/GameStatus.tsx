@@ -52,8 +52,6 @@ export const GameStatus = ({ board, onCheckmate }: GameStatusProps) => {
     switch (gameStatus) {
       case "check":
         return `${isWhiteTurn ? "White" : "Black"} is in Check!`;
-      case "stalemate":
-        return "Stalemate! Game is a draw.";
       default:
         return `${isWhiteTurn ? "White" : "Black"}'s turn`;
     }
@@ -63,8 +61,6 @@ export const GameStatus = ({ board, onCheckmate }: GameStatusProps) => {
     switch (gameStatus) {
       case "check":
         return "#ff6b6b"; // Red for check
-      case "stalemate":
-        return "#ffa500"; // Orange for stalemate
       default:
         return "#4CAF50"; // Green for normal play
     }
