@@ -10,7 +10,7 @@ import RoomInfo from './online/RoomInfo';
 
 import type { Color } from '../multiplayer/types';
 
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import { ChessProvider, useChessStore } from '../app/chessStore';
 import { MultiplayerProvider, useMultiplayer } from '../multiplayer/MultiplayerProvider';
 import { useMoveLog } from '../chess/components/history/moveLogStore';
