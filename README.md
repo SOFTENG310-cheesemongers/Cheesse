@@ -21,17 +21,68 @@ Cheesse provides a fully interactive chess experience with a graphical web inter
 
 ## Getting Started  
 
-### Production
+### Production (Docker)
 
-If you have docker installed (see <https://docs.docker.com/get-started/get-docker/> for installation instructions), you can use the docker container built from this repository to streamline installation for production environments.
+If you have Docker installed (see <https://docs.docker.com/get-started/get-docker/> for installation instructions), you can use Docker containers to streamline installation and deployment.
 
 #### Prerequisites
 
-For this you just need a up-to-date version of docker
+- **Docker** (v20.10 or later)
+- **Docker Compose** (v2.0 or later, included with Docker Desktop)
 
-#### Installation
+#### Installation & Running
 
-Start by cloning the repository (`git clone https://github.com/SOFTENG310-cheesemongers/Cheesse`), then `cd` into the directory (`cd Cheesse`), then you can run the container by running `docker compose up`.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/SOFTENG310-cheesemongers/Cheesse
+   cd Cheesse
+   ```
+
+2. Start both frontend and backend services:
+   ```bash
+   docker compose up
+   ```
+
+3. Access the application:
+   - **Frontend**: [http://localhost:3000](http://localhost:3000)
+   - **Backend API**: [http://localhost:8080](http://localhost:8080)
+
+#### Docker Commands
+
+**Run in detached mode (background):**
+```bash
+docker compose up -d
+```
+
+**Rebuild images after code changes:**
+```bash
+docker compose up --build
+```
+
+**Stop all services:**
+```bash
+docker compose down
+```
+
+**Run only backend:**
+```bash
+docker compose up backend
+```
+
+**Run only frontend:**
+```bash
+docker compose up frontend
+```
+
+**View logs:**
+```bash
+docker compose logs -f
+```
+
+#### Docker Architecture
+- **Frontend**: Node.js build → Caddy web server (port 3000)
+- **Backend**: Node.js server with Socket.io (port 8080)
+- Both services run in isolated containers on a shared network
 
 
 
