@@ -13,6 +13,7 @@ export default function Timer() {
         setMenuOpen,
         setMenuMode,
         setRunning,
+        setMenuResult,
     } = useChessStore();
 
     const formatTime = (totalSeconds: number) => {
@@ -25,8 +26,27 @@ export default function Timer() {
         if (isRunning) {
             timer = setInterval(() => {
                 if (!isRunning) return;
-                if (isWhiteTurn) setWhiteSeconds((prev: number) => Math.max(prev - 1, 0));
-                else setBlackSeconds((prev: number) => Math.max(prev - 1, 0));
+                if (isWhiteTurn) {
+                    setWhiteSeconds((prev: number) => {
+                        const next = Math.max(prev - 1, 0);
+                        if (next === 0) {
+                            // white ran out -> black wins
+                            setMenuResult('black');
+                            setRunning(false);
+                        }
+                        return next;
+                    });
+                } else {
+                    setBlackSeconds((prev: number) => {
+                        const next = Math.max(prev - 1, 0);
+                        if (next === 0) {
+                            // black ran out -> white wins
+                            setMenuResult('white');
+                            setRunning(false);
+                        }
+                        return next;
+                    });
+                }
             }, 1000);
         }
         return () => { if (timer) clearInterval(timer); };
