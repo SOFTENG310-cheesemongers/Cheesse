@@ -12,7 +12,7 @@
 
 /* Sidebar for the game options */
 .game-options-sidebar {
-    background-image: url("../../assets/menuBoard.png");
+    background-image: url(/src/main/assets/menuBoard.png);
     background-repeat: no-repeat;
     background-size: cover;
     justify-content: center;

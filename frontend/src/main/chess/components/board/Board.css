@@ -74,7 +74,11 @@
 }
 
 /* Square styles */
-.square { position: relative }
+.square {
+    position: relative;
+    cursor: pointer;
+}
+
 .piece {
     position: absolute;
     left: 50%;
@@ -85,12 +89,37 @@
     user-select: none;
     pointer-events: auto;
     filter: drop-shadow(4px -2px 3px rgba(64, 36, 1, 0.5));
+    z-index: 2; /* Piece above highlight */
 }
 
-/* Highlighted square styles */
-.highlight {
+/* Selected square highlight */
+.selection-highlight {
   position: absolute;
   inset: 0;
-  background: rgba(0, 255, 0, 0.22);
+  background: rgba(0, 200, 0, 0.4);
+  border: 3px solid rgba(0, 255, 0, 0.35);
   pointer-events: none;
+  z-index: 1; /* Highlight below piece */
+}
+
+/* Valid move indicator */
+.valid-move-indicator {
+  position: absolute;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 25%;
+  height: 25%;
+  background: rgba(0, 150, 0, 0.5);
+  border-radius: 50%; /* Creates circle */
+  pointer-events: none;
+}
+
+/* Valid move indicator for capture (has piece) */
+.valid-move-indicator.capture {
+  width: 90%;
+  height: 90%;
+  background: rgba(220, 0, 0, 0.35);
+  border: 3px solid rgba(255, 0, 0, 0.5);
+  border-radius: 0;
 }

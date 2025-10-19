@@ -1,6 +1,7 @@
 import "./Timer.css";
 import { useEffect } from "react";
 import { useChessStore } from "../../../app/chessStore";
+import pauseIcon from "../../../assets/pause.png";
 
 export default function Timer() {
     const {
@@ -67,7 +68,7 @@ export default function Timer() {
                 <h3 className="whiteTimer" style={{ color: "black" }}>{formatTime(whiteSeconds)}</h3>
             </div>
             
-            <img src="/src/main/assets/pause.png" 
+            <img src={pauseIcon} 
                 alt="Timer" className="timerImage" style={{ width: "65px", height: "65px" }} 
                 onClick={onPauseClick}
                 onKeyDown={(e) => (e.key === "space") ? onPauseClick() : null}
