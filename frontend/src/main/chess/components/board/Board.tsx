@@ -37,6 +37,16 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
         setValidMoves([]);
       } 
 
+      // If the clicked square is a valid move destination, move the piece
+      else if (validMoves.includes(squareId)) {
+        // Execute the move (switches turn in movePiece)
+        movePiece(selectedSquare, squareId);
+        
+        // Clear selection
+        setSelectedSquare(null);
+        setValidMoves([]);
+      }
+
       // If theres another piece of the same colour, select it instead
       else if (pieces[squareId] && pieces[selectedSquare] &&
                 pieces[squareId]?.endsWith(pieces[selectedSquare]!.endsWith("white") ? "white" : "black")) {
