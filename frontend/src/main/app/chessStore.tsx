@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { createContext, useContext, useState, useMemo, useEffect, useCallback } from 'react';
 import type { JSX, ReactNode } from 'react';
 
 interface ChessMove {
@@ -64,6 +64,7 @@ interface ChessState {
     setMenuMessage: (m: string | null) => void;
     // helper to open the menu in result mode with a message
     setMenuResult: (message: string) => void;
+    resetGame: () => void;
 }
 
 const ChessContext = createContext<ChessState | null>(null);
@@ -223,6 +224,22 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
         setIsRunning(s > 0);
     };
 
+    // Reset all game state (for starting a new game)
+    const resetGame = useCallback(() => {
+        setMoveHistory([]);
+        setCurrentMove(0);
+        setMoveDetails([]);
+        setRedoStack([]);
+        setUndoTrigger(0);
+        setRedoTrigger(0);
+        setIsWhiteTurn(true);
+        setIsRunning(selectedSeconds !== null && selectedSeconds > 0);
+        if (selectedSeconds !== null) {
+            setWhiteSeconds(selectedSeconds);
+            setBlackSeconds(selectedSeconds);
+        }
+    }, [selectedSeconds]);
+
     const value = useMemo(() => ({
         moveHistory,
         currentMove,
@@ -273,7 +290,8 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
         toggleRunning,
         setRunning,
         resetTimers,
-    }), [moveHistory, currentMove, moveDetails, canUndo, undoTrigger, redoStack, canRedo, redoTrigger, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds, menuOpen, setRunning]);
+        resetGame,
+    }), [moveHistory, currentMove, moveDetails, canUndo, undoTrigger, redoStack, canRedo, redoTrigger, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds, resetGame, setRunning]);
 
     return (
         <ChessContext.Provider value={value}>
