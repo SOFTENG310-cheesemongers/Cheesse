@@ -19,27 +19,45 @@ export function calculateValidMoves(
   const isWhite = piece.endsWith("white");
   const pieceType = piece.split("_")[0];
 
-  const validMoves: SquareId[] = [];
-
   switch (pieceType) {
     case "pawn":
       return calculatePawnMoves(file, rank, pieces, isWhite);
     case "rook":
-      return calculateRookMoves(fileIndex, rank, pieces, isWhite);
+      return calculateStraightLineMoves(fileIndex, rank, pieces, isWhite,
+        [[0, 1], [0, -1], [1, 0], [-1, 0]]);
     case "knight":
       return calculateKnightMoves(fileIndex, rank, pieces, isWhite);
     case "bishop":
-      return calculateBishopMoves(fileIndex, rank, pieces, isWhite);
+      return calculateStraightLineMoves(fileIndex, rank, pieces, isWhite,
+        [[1, 1], [1, -1], [-1, 1], [-1, -1]]);
     case "queen":
-      return [
-        ...calculateRookMoves(fileIndex, rank, pieces, isWhite),
-        ...calculateBishopMoves(fileIndex, rank, pieces, isWhite)
-      ];
+      return calculateStraightLineMoves(fileIndex, rank, pieces, isWhite, [
+        [0, 1], [0, -1], [1, 0], [-1, 0],
+        [1, 1], [1, -1], [-1, 1], [-1, -1]
+      ]);
     case "king":
-      return calculateKingMoves(fileIndex, rank, pieces, isWhite);
+      return calculateJumpMoves(fileIndex, rank, pieces, isWhite, [
+        [0, 1], [0, -1], [1, 0], [-1, 0],
+        [1, 1], [1, -1], [-1, 1], [-1, -1]
+      ]);
+    default:
+      return [];
   }
+}
 
-  return validMoves;
+/**
+ * Check if a square is valid and can be moved to
+ */
+function canMoveTo(square: SquareId, pieces: Pieces, isWhite: boolean): boolean {
+  const targetPiece = pieces[square];
+  return !targetPiece || targetPiece.endsWith(isWhite ? "black" : "white");
+}
+
+/**
+ * Check if coordinates are within the board
+ */
+function isInBounds(file: number, rank: number): boolean {
+  return file >= 0 && file < 8 && rank >= 1 && rank <= 8;
 }
 
 function calculatePawnMoves(file: string, rank: number, pieces: Pieces, isWhite: boolean): SquareId[] {
@@ -66,7 +84,7 @@ function calculatePawnMoves(file: string, rank: number, pieces: Pieces, isWhite:
   for (const fileDelta of [-1, 1]) {
     const newFileIndex = fileIndex + fileDelta;
     
-    if (newFileIndex >= 0 && newFileIndex < 8) { // In board
+    if (isInBounds(newFileIndex, rank + direction)) {
       const captureSquare = `${FILES[newFileIndex]}${rank + direction}` as SquareId;
       const targetPiece = pieces[captureSquare];
       if (targetPiece && targetPiece.endsWith(isWhite ? "black" : "white")) {
@@ -78,15 +96,23 @@ function calculatePawnMoves(file: string, rank: number, pieces: Pieces, isWhite:
   return moves;
 }
 
-function calculateRookMoves(fileIndex: number, rank: number, pieces: Pieces, isWhite: boolean): SquareId[] {
+/**
+ * Calculate moves for sliding pieces (rook, bishop, queen)
+ */
+function calculateStraightLineMoves(
+  fileIndex: number, 
+  rank: number, 
+  pieces: Pieces, 
+  isWhite: boolean,
+  directions: number[][]
+): SquareId[] {
   const moves: SquareId[] = [];
-  const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
 
   for (const [fileDelta, rankDelta] of directions) {
     let newFile = fileIndex + fileDelta;
     let newRank = rank + rankDelta;
 
-    while (newFile >= 0 && newFile < 8 && newRank >= 1 && newRank <= 8) {
+    while (isInBounds(newFile, newRank)) {
       const square = `${FILES[newFile]}${newRank}` as SquareId;
       const targetPiece = pieces[square];
 
@@ -101,6 +127,33 @@ function calculateRookMoves(fileIndex: number, rank: number, pieces: Pieces, isW
 
       newFile += fileDelta;
       newRank += rankDelta;
+    }
+  }
+
+  return moves;
+}
+
+/**
+ * Calculate moves for jumping pieces (knight, king)
+ */
+function calculateJumpMoves(
+  fileIndex: number,
+  rank: number,
+  pieces: Pieces,
+  isWhite: boolean,
+  offsets: number[][]
+): SquareId[] {
+  const moves: SquareId[] = [];
+
+  for (const [fileDelta, rankDelta] of offsets) {
+    const newFile = fileIndex + fileDelta;
+    const newRank = rank + rankDelta;
+
+    if (isInBounds(newFile, newRank)) {
+      const square = `${FILES[newFile]}${newRank}` as SquareId;
+      if (canMoveTo(square, pieces, isWhite)) {
+        moves.push(square);
+      }
     }
   }
 
@@ -108,78 +161,8 @@ function calculateRookMoves(fileIndex: number, rank: number, pieces: Pieces, isW
 }
 
 function calculateKnightMoves(fileIndex: number, rank: number, pieces: Pieces, isWhite: boolean): SquareId[] {
-  const moves: SquareId[] = [];
-  const knightMoves = [
+  return calculateJumpMoves(fileIndex, rank, pieces, isWhite, [
     [2, 1], [2, -1], [-2, 1], [-2, -1],
     [1, 2], [1, -2], [-1, 2], [-1, -2]
-  ];
-
-  for (const [fileDelta, rankDelta] of knightMoves) {
-    const newFile = fileIndex + fileDelta;
-    const newRank = rank + rankDelta;
-
-    if (newFile >= 0 && newFile < 8 && newRank >= 1 && newRank <= 8) {
-      const square = `${FILES[newFile]}${newRank}` as SquareId;
-      const targetPiece = pieces[square];
-
-      if (!targetPiece || targetPiece.endsWith(isWhite ? "black" : "white")) {
-        moves.push(square);
-      }
-    }
-  }
-
-  return moves;
-}
-
-function calculateBishopMoves(fileIndex: number, rank: number, pieces: Pieces, isWhite: boolean): SquareId[] {
-  const moves: SquareId[] = [];
-  const directions = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
-
-  for (const [fileDelta, rankDelta] of directions) {
-    let newFile = fileIndex + fileDelta;
-    let newRank = rank + rankDelta;
-
-    while (newFile >= 0 && newFile < 8 && newRank >= 1 && newRank <= 8) {
-      const square = `${FILES[newFile]}${newRank}` as SquareId;
-      const targetPiece = pieces[square];
-
-      if (!targetPiece) {
-        moves.push(square);
-      } else {
-        if (targetPiece.endsWith(isWhite ? "black" : "white")) {
-          moves.push(square);
-        }
-        break;
-      }
-
-      newFile += fileDelta;
-      newRank += rankDelta;
-    }
-  }
-
-  return moves;
-}
-
-function calculateKingMoves(fileIndex: number, rank: number, pieces: Pieces, isWhite: boolean): SquareId[] {
-  const moves: SquareId[] = [];
-  const kingMoves = [
-    [0, 1], [0, -1], [1, 0], [-1, 0],
-    [1, 1], [1, -1], [-1, 1], [-1, -1]
-  ];
-
-  for (const [fileDelta, rankDelta] of kingMoves) {
-    const newFile = fileIndex + fileDelta;
-    const newRank = rank + rankDelta;
-
-    if (newFile >= 0 && newFile < 8 && newRank >= 1 && newRank <= 8) {
-      const square = `${FILES[newFile]}${newRank}` as SquareId;
-      const targetPiece = pieces[square];
-
-      if (!targetPiece || targetPiece.endsWith(isWhite ? "black" : "white")) {
-        moves.push(square);
-      }
-    }
-  }
-
-  return moves;
+  ]);
 }
