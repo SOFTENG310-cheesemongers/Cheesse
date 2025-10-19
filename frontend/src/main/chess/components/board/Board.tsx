@@ -7,6 +7,7 @@ import { FILES, RANKS, type SquareId } from "./BoardConfig";
 import { useMovePiece } from "../board/hooks/useMovePiece";
 import { useState } from "react";
 import { calculateValidMoves } from "../../referee/moveCalculator";
+import { useChessStore } from "../../../app/chessStore";
 
 // ---------------- Board Component ---------------- //
 
@@ -17,6 +18,7 @@ import { calculateValidMoves } from "../../referee/moveCalculator";
 
 export default function Board({ flipped = false }: { flipped?: boolean }) {
   const { pieces, movePiece } = useMovePiece();
+  const { isWhiteTurn } = useChessStore();
    
   // State to track selected square
   const [selectedSquare, setSelectedSquare] = useState<SquareId | null>(null);
@@ -48,10 +50,17 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
         setValidMoves([]);
       }
     } 
+
     // If there's no selected square and the clicked square has a piece, select it
     else if (pieces[squareId]) {
-      setSelectedSquare(squareId);
-      setValidMoves(calculateValidMoves(squareId, pieces));
+      // Only allow selecting piece if piece color is same as turn
+      const pieceColor = pieces[squareId]?.endsWith("white") ? "white" : "black";
+      const canSelect = (isWhiteTurn && pieceColor === "white") || (!isWhiteTurn && pieceColor === "black");
+      
+      if (canSelect) {
+        setSelectedSquare(squareId);
+        setValidMoves(calculateValidMoves(squareId, pieces));
+      }
     }
   };
 
