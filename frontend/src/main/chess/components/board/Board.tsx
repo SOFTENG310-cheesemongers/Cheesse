@@ -8,6 +8,7 @@ import { useMovePiece } from "../board/hooks/useMovePiece";
 import { useState } from "react";
 import { calculateValidMoves } from "../../referee/moveCalculator";
 import { useChessStore } from "../../../app/chessStore";
+import { GameStatus } from "../status/GameStatus";
 
 // ---------------- Board Component ---------------- //
 
@@ -16,10 +17,13 @@ import { useChessStore } from "../../../app/chessStore";
  * @returns {JSX.Element}
  */
 
-export default function Board({ flipped = false }: { flipped?: boolean }) {
-  const { pieces, movePiece } = useMovePiece();
+export default function Board({ flipped = false, onCheckmate }: {
+  flipped?: boolean;
+  onCheckmate?: (losingPlayer: 'White' | 'Black') => void;
+}) {
+  const { pieces, movePiece, boardArray } = useMovePiece();
   const { isWhiteTurn } = useChessStore();
-   
+
   // State to track selected square
   const [selectedSquare, setSelectedSquare] = useState<SquareId | null>(null);
 
@@ -57,7 +61,7 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
       if (selectedSquare !== null) {
         movePiece(selectedSquare, squareId);
       }
-      
+
       clearSelection();
     } else if (pieces[squareId] && isCurrentPlayersPiece(pieces[squareId])) {
       selectSquare(squareId);
@@ -98,6 +102,7 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
   // Render the board
   return (
     <div className="wrapper">
+      <GameStatus board={boardArray} onCheckmate={onCheckmate} />
       <div className="board-wrapper">
         <div className="board">
           {/* Render the squares */}
@@ -111,7 +116,7 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
 
               // Sets a piece draggable if it's color's turn
               const canDrag = piece && (
-                (isWhiteTurn && piece.endsWith("white")) || 
+                (isWhiteTurn && piece.endsWith("white")) ||
                 (!isWhiteTurn && piece.endsWith("black"))
               );
 
