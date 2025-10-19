@@ -9,6 +9,9 @@ import GameOptionsSidebar from '../chess/components/controls/GameOptionsSidebar'
 import { useState, useEffect } from 'react';
 import Timer from "../chess/components/controls/Timer";
 import { useChessStore } from '../app/chessStore';
+import InGameMenu from '../chess/components/controls/InGameMenu'
+import InGameMenuPause from '../chess/components/controls/InGameMenuPause'
+import InGameMenuResult from "../chess/components/controls/InGameMenuResult";
 import { useOptionalMultiplayer } from '../multiplayer/MultiplayerProvider';
 
 /**
@@ -30,6 +33,7 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
   const [forfeitingPlayer, setForfeitingPlayer] = useState<'White' | 'Black'>('White');
   const [winner, setWinner] = useState<'White' | 'Black'>('White');
   const [selectedOption, setSelectedOption] = useState('standard');
+  const { menuOpen, setMenuOpen, selectedSeconds, setRunning, menuMode, menuMessage } = useChessStore();
 
   // Debug: log on mount
   useEffect(() => {
@@ -170,6 +174,15 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
         onOptionChange={handleOptionChange}
         options={options}
       />
+
+      <InGameMenu open={menuOpen} onClose={() => {
+        // close menu
+        setMenuOpen(false);
+        // resume timer only when a timer is configured
+        if (selectedSeconds !== null) setRunning(true);
+      }}>
+        {menuMode === 'result' ? <InGameMenuResult message={menuMessage ?? ''} /> : <InGameMenuPause />}
+      </InGameMenu>
     </div>
   );
 }

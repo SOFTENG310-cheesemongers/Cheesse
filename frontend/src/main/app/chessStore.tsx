@@ -51,7 +51,19 @@ interface ChessState {
     setBlackSeconds: (value: number | ((prev: number) => number)) => void;
     changeTurn: (nextIsWhite?: boolean) => void;
     toggleRunning: () => void;
+    setRunning: (running: boolean) => void;
     resetTimers: (seconds?: number) => void;
+    // in-game menu overlay
+    menuOpen: boolean;
+    setMenuOpen: (open: boolean) => void;
+    // menu mode: 'pause' shows pause UI, 'result' shows result UI
+    menuMode: 'pause' | 'result';
+    setMenuMode: (m: 'pause' | 'result') => void;
+    // optional message to show in result mode
+    menuMessage: string | null;
+    setMenuMessage: (m: string | null) => void;
+    // helper to open the menu in result mode with a message
+    setMenuResult: (message: string) => void;
     resetGame: () => void;
 }
 
@@ -73,6 +85,11 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
     const [blackSeconds, setBlackSeconds] = useState<number>(0);
     const [isWhiteTurn, setIsWhiteTurn] = useState<boolean>(true);
     const [isRunning, setIsRunning] = useState<boolean>(true);
+
+    // in-game menu overlay state
+    const [menuOpen, setMenuOpen] = useState<boolean>(false);
+    const [menuMode, setMenuMode] = useState<'pause' | 'result'>('pause');
+    const [menuMessage, setMenuMessage] = useState<string | null>(null);
 
     // Whenever selectedSeconds changes to a non-null value, reset timers to that value
     useEffect(() => {
@@ -197,6 +214,8 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
 
     const toggleRunning = () => setIsRunning(!isRunning);
 
+    const setRunning = (running: boolean) => setIsRunning(running);
+
     const resetTimers = (seconds?: number) => {
         const s = typeof seconds === 'number' ? seconds : selectedSeconds ?? 0;
         setWhiteSeconds(s);
@@ -251,14 +270,28 @@ export function ChessProvider({ children }: { children: ReactNode }): JSX.Elemen
         selectedSeconds,
         setSelectedSeconds,
 
+      // in-game menu
+      menuOpen,
+      setMenuOpen,
+        menuMode,
+        setMenuMode,
+        menuMessage,
+        setMenuMessage,
+        setMenuResult: (message: string) => {
+            setMenuMode('result')
+            setMenuMessage(message)
+            setMenuOpen(true)
+        },
+        
         // actions
         setWhiteSeconds,
         setBlackSeconds,
         changeTurn,
         toggleRunning,
+        setRunning,
         resetTimers,
         resetGame,
-    }), [moveHistory, currentMove, moveDetails, canUndo, undoTrigger, redoStack, canRedo, redoTrigger, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds, resetGame]);
+    }), [moveHistory, currentMove, moveDetails, canUndo, undoTrigger, redoStack, canRedo, redoTrigger, whiteSeconds, blackSeconds, isWhiteTurn, isRunning, selectedSeconds, resetGame, setRunning]);
 
     return (
         <ChessContext.Provider value={value}>
