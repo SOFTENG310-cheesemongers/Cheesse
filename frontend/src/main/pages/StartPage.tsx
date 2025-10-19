@@ -88,21 +88,24 @@ export default function StartPage() {
                             style={{ border: selectPlayStyle === 1 ? '10px solid gold' : 'none' }}
                             >
                                 <img src={personPlayerIcon} alt="Person" width={16}/>
-                                <span>&nbsp;&nbsp;&nbsp; Local PvP</span>
+                                <br/>
+                                <span>Local PvP</span>
                             </button>
                             <button className="option-button"
                             onClick={() => onPlayStyleButtonClick(2)}
                             style={{ border: selectPlayStyle === 2 ? '10px solid gold' : 'none' }}
                             >
                                 <img src={botPlayerIcon} alt="Bot" width={20}/>
-                                <span>&nbsp;&nbsp;&nbsp; PvC</span>
+                                <br/>
+                                <span>PvC</span>
                             </button>
                             <button className="option-button"
                             onClick={() => onPlayStyleButtonClick(3)}
                             style={{ border: selectPlayStyle === 3 ? '10px solid gold' : 'none' }}
                             >
                                 <img src={onlineMatchmakingIcon} alt="Online" width={20}/>
-                                <span>&nbsp;&nbsp;&nbsp; Online PvP</span>
+                                <br/>
+                                <span>Online PvP</span>
                             </button>
                         </div>
                         <h2>
@@ -115,7 +118,8 @@ export default function StartPage() {
                             style={{ border: selectTimer === 1 ? '10px solid gold' : 'none' }}
                             >
                                 <img src={shortDurationGameIcon} alt="Person" width={16}/>
-                                <span>&nbsp;&nbsp;&nbsp; 5 min</span>
+                                <br/>
+                                <span>5 min</span>
                             </button>
                             <button 
                             className="option-button" 
@@ -123,7 +127,8 @@ export default function StartPage() {
                             style={{ border: selectTimer === 2 ? '10px solid gold' : 'none' }}
                             >
                                 <img src={mediumDurationGameIcon} alt="Person" width={16}/>
-                                <span>&nbsp;&nbsp;&nbsp; 10 min</span>
+                                <br/>
+                                <span>10 min</span>
                             </button>
                             <button 
                             className="option-button"     
@@ -131,9 +136,11 @@ export default function StartPage() {
                             style={{ border: selectTimer === 3 ? '10px solid gold' : 'none' }}
                             >
                                 <img src={longDurationGameIcon} alt="Person" width={16}/>
-                                <span>&nbsp;&nbsp;&nbsp; 60 min</span>
+                                <br/>
+                                <span>60 min</span>
                             </button>
                         </div>
+                        <br/>
                         <button className="start-button" onClick={showGamePage}> Start </button>
                     </div>
                 </div>
