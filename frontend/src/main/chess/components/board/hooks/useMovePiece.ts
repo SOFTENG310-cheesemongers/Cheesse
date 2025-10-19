@@ -7,6 +7,7 @@ import { useChessStore } from '../../../../app/chessStore';
 import { type SquareId, type PieceName, initialPieces } from "../BoardConfig";
 import { squareToCoords } from "../../../utils/chessUtils";
 import { useRecordMove } from "./useRecordMove";
+import { useOptionalMultiplayer } from '../../../../multiplayer/MultiplayerProvider';
 import { useMoveLog } from "../../history/moveLogStore";
 
 /**
@@ -16,7 +17,29 @@ import { useMoveLog } from "../../history/moveLogStore";
 export function useMovePiece() {
   const recordMove = useRecordMove();
   const { undoLastMove: undoMoveLog, redoLastMove: redoMoveLog } = useMoveLog();
-  const [pieces, setPieces] = useState(initialPieces);
+  const mp = useOptionalMultiplayer();
+  
+  // Initialize pieces - if in multiplayer, reconstruct from server state
+  const [pieces, setPieces] = useState(() => {
+    if (mp && mp.state) {
+      const moves = (mp.state as any).moves || [];
+      if (moves.length > 0) {
+        let board: Partial<Record<SquareId, PieceName>> = { ...initialPieces };
+        for (const move of moves) {
+          const from = move.from as SquareId;
+          const to = move.to as SquareId;
+          const piece = board[from];
+          if (piece) {
+            board[to] = piece;
+            delete board[from];
+          }
+        }
+        return board;
+      }
+    }
+    return initialPieces;
+  });
+  
   const moveInProgress = useRef(false);
   const lastMoveDetailsLength = useRef(0);
   const lastProcessedUndoTrigger = useRef(0);
@@ -28,10 +51,22 @@ export function useMovePiece() {
   // chess store functions
   const { changeTurn, addMoveDetails, moveDetails, undoTrigger, undoLastMove, redoTrigger, redoLastMove } = useChessStore();
 
+  // Keep a ref to latest pieces to avoid stale closures in movePiece
+  const piecesRef = useRef(pieces);
+  useEffect(() => {
+    piecesRef.current = pieces;
+  }, [pieces]);
+
+
+
   // Persistent move counter
   const moveCountRef = useRef(0);
 
   // Persistent board representation
+  // TODO: Consider refactoring - boardArray is manually updated in 5 places:
+  // 1. Initialization (below), 2. Multiplayer sync, 3. Local moves, 4. Undo, 5. Redo
+  // Could use a single useEffect(() => { sync from pieces }, [pieces]) instead.
+  // Current approach works correctly but is less maintainable.
   const boardArray = useRef<(string | undefined)[][]>(
     Array(8).fill(null).map(() => Array(8).fill(undefined))
   );
@@ -47,6 +82,11 @@ export function useMovePiece() {
 
   // Effect to handle undo when trigger changes
   useEffect(() => {
+    // Skip undo in multiplayer - server is source of truth
+    if (mp && mp.roomId) {
+      return;
+    }
+
     if (undoTrigger > lastProcessedUndoTrigger.current && moveDetails.length > 0) {
       // Update the processed trigger to prevent repeating
       lastProcessedUndoTrigger.current = undoTrigger;
@@ -73,7 +113,7 @@ export function useMovePiece() {
         setPieces(newPieces);
 
         // Update board array to match the new pieces state
-        const newBoardArray = Array(8).fill(null).map(() => Array(8).fill(null));
+        const newBoardArray = Array(8).fill(undefined).map(() => Array(8).fill(undefined));
         Object.entries(newPieces).forEach(([square, piece]) => {
           const [x, y] = squareToCoords(square as SquareId);
           newBoardArray[y][x] = piece;
@@ -90,10 +130,15 @@ export function useMovePiece() {
         undoMoveLog();
       }
     }
-  }, [undoTrigger, moveDetails, pieces, changeTurn, undoLastMove, undoMoveLog]);
+  }, [mp, undoTrigger, moveDetails, pieces, changeTurn, undoLastMove, undoMoveLog]);
 
   // Effect to handle redo when trigger changes
   useEffect(() => {
+    // Skip redo in multiplayer - server is source of truth
+    if (mp && mp.roomId) {
+      return;
+    }
+
     if (redoTrigger > lastProcessedRedoTrigger.current) {
       // Update the processed trigger to prevent repeating
       lastProcessedRedoTrigger.current = redoTrigger;
@@ -121,7 +166,7 @@ export function useMovePiece() {
         setPieces(newPieces);
 
         // Update board array to match the new pieces state
-        const newBoardArray = Array(8).fill(null).map(() => Array(8).fill(null));
+        const newBoardArray = Array(8).fill(undefined).map(() => Array(8).fill(undefined));
         Object.entries(newPieces).forEach(([square, piece]) => {
           const [x, y] = squareToCoords(square as SquareId);
           newBoardArray[y][x] = piece;
@@ -138,12 +183,117 @@ export function useMovePiece() {
         redoMoveLog(moveToRedo.notation);
       }
     }
-  }, [redoTrigger, pieces, changeTurn, redoLastMove, redoMoveLog]);
+  }, [mp, redoTrigger, pieces, changeTurn, redoLastMove, redoMoveLog]);
+
+  // Apply moves from multiplayer - reconstruct entire board state from server moves
+  const lastRecordedMoveCount = useRef(0);
+  useEffect(() => {
+    if (!mp || !mp.state) {
+      return;
+    }
+    
+    const moves = (mp.state as any).moves || [];
+    if (moves.length === 0) {
+      return;
+    }
+    
+    // Reconstruct entire board from scratch using server's move list
+    let board: Partial<Record<SquareId, PieceName>> = { ...initialPieces };
+    
+    // Apply each move in sequence
+    for (const move of moves) {
+      const from = move.from as SquareId;
+      const to = move.to as SquareId;
+      const piece = board[from];
+      
+      if (piece) {
+        board[to] = piece;
+        delete board[from];
+      }
+    }
+    
+    // Update pieces state with reconstructed board
+    setPieces(board);
+    
+    // Rebuild board array from reconstructed board
+    const newBoardArray = Array(8).fill(undefined).map(() => Array(8).fill(undefined));
+    Object.entries(board).forEach(([square, piece]) => {
+      if (piece) {
+        const [x, y] = squareToCoords(square as SquareId);
+        newBoardArray[y][x] = piece;
+      }
+    });
+    boardArray.current = newBoardArray;
+    
+    // Update move count
+    moveCountRef.current = moves.length;
+    
+    // Update turn
+    if (mp.state.activeColor) {
+      const isWhiteTurn = mp.state.activeColor === 'white';
+      changeTurn(isWhiteTurn);
+    }
+    
+    // Record only NEW moves in move log (to avoid duplicates on remount)
+    if (moves.length > lastRecordedMoveCount.current) {
+      const newMoves = moves.slice(lastRecordedMoveCount.current);
+      for (const move of newMoves) {
+        recordMove(move.from, move.to, move.piece);
+      }
+      lastRecordedMoveCount.current = moves.length;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mp?.lastMoveSeq]);
 
   /**
    * Moves a piece from one square to another.
    */
   function movePiece(from: SquareId, to: SquareId) {
+    // Multiplayer: enforce color lock (can't move opponent's pieces)
+    if (mp && mp.roomId) {
+      // Use ref to get latest pieces (avoid stale closure)
+      const currentPieces = piecesRef.current;
+      const movingPiece = currentPieces[from];
+      if (!movingPiece) {
+        return;
+      }
+      const isWhitePiece = movingPiece.endsWith('_white');
+      const myColor = mp.myColor;
+      
+      // Only check that you're moving YOUR color pieces
+      // Turn enforcement is handled by the server
+      if ((myColor === 'white' && !isWhitePiece) || (myColor === 'black' && isWhitePiece)) {
+        console.warn('[useMovePiece] Cannot move opponent piece');
+        return;
+      }
+    }
+    
+    // In multiplayer, just validate and send to server - don't update local state
+    if (mp && mp.roomId) {
+      // Use ref to get latest pieces (avoid stale closure)
+      const currentPieces = piecesRef.current;
+      const piece = currentPieces[from];
+      const destPiece = currentPieces[to];
+      
+      if (!piece || from === to) return;
+      
+      const [prevX, prevY] = squareToCoords(from);
+      const [newX, newY] = squareToCoords(to);
+      
+      // Validate move before sending to server
+      referee.setMoveCount(moveCountRef.current);
+      if (!referee.isValidMove(boardArray.current, prevX, prevY, newX, newY, piece, destPiece)) {
+        return;
+      }
+      
+      // Send to server - board will update when server responds with moveAccepted
+      // Move log will be updated in sync effect when server confirms
+      mp.makeMove(from, to, piece);
+      
+      return; // Don't update local state - wait for server
+    }
+    
+    // Local game: update state immediately
     setPieces(prev => {
       const piece = prev[from];
       const destPiece = prev[to];
@@ -153,9 +303,12 @@ export function useMovePiece() {
       const [prevX, prevY] = squareToCoords(from);
       const [newX, newY] = squareToCoords(to);
 
+      console.log('[useMovePiece] Validating move:', { from, to, piece, prevX, prevY, newX, newY, moveCount: moveCountRef.current });
+      console.log('[useMovePiece] Board state:', boardArray.current);
+
       referee.setMoveCount(moveCountRef.current);
       if (!referee.isValidMove(boardArray.current, prevX, prevY, newX, newY, piece, destPiece)) {
-        console.warn(`Invalid move from ${from} to ${to}`);
+        console.warn(`[useMovePiece] Invalid move from ${from} to ${to}. Piece: ${piece}, DestPiece: ${destPiece}`);
         return prev;
       }
 
@@ -184,7 +337,7 @@ export function useMovePiece() {
         }
         const properNotation = `${pieceSymbol}${to}`;
 
-        // Save move details for undo functionality
+        // Save move details for undo functionality (local game only)
         addMoveDetails({
           from,
           to,
@@ -194,7 +347,7 @@ export function useMovePiece() {
         });
 
         recordMove(from, to, piece);
-        changeTurn();
+        changeTurn(); // Local game: change turn immediately
         setTimeout(() => { moveInProgress.current = false; }, 0);
       }
 

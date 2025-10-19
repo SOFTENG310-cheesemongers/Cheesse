@@ -64,12 +64,17 @@ export function MoveLogProvider({ children }: { children: ReactNode }) {
         });
     };
 
+    const resetMoveLog = () => {
+        setMoves([]);
+    };
+
     // Memoized context value
     const value = useMemo(() => ({
         moves,
         addMove,
         undoLastMove,
-        redoLastMove
+        redoLastMove,
+        resetMoveLog
     }), [moves]);
 
     // Provide the context value

@@ -1,0 +1,183 @@
+.room-info {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.room-info-panel {
+  background: rgba(92, 64, 51, 0.3);
+  border: 3px solid #d4af37;
+  border-radius: 12px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.room-info-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+  text-align: center;
+  color: #e8f5e9;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.room-info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.room-info-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e8f5e9;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.room-info-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.room-info-code {
+  flex: 1;
+  padding: 14px;
+  background: rgba(42, 30, 20, 0.95);
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f4d03f;
+  word-break: break-all;
+  text-shadow: 0 0 8px rgba(244, 208, 63, 0.6);
+}
+
+.room-info-copy-btn {
+  padding: 12px 18px;
+  background: rgba(212, 175, 55, 0.85);
+  border: 2px solid #f4d03f;
+  border-radius: 8px;
+  color: #2c1810;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.room-info-copy-btn:hover {
+  background: rgba(244, 208, 63, 1);
+  border-color: #fff8dc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.room-info-copy-btn:active {
+  transform: scale(0.95);
+}
+
+.room-info-value {
+  padding: 10px 14px;
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid #16a34a;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #a7f3d0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.room-info-status {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.room-info-status.connected {
+  background: rgba(34, 139, 34, 0.6);
+  border-color: #4ade80;
+  color: #e8f5e9;
+}
+
+.room-info-status.waiting {
+  background: rgba(180, 83, 9, 0.6);
+  border-color: #fbbf24;
+  color: #fef3c7;
+}
+
+.room-info-start-btn {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border: 2px solid #22c55e;
+  border-radius: 10px;
+  color: #e8f5e9;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.room-info-start-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.5);
+  border-color: #4ade80;
+}
+
+.room-info-start-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.room-info-start-btn:disabled {
+  background: rgba(92, 64, 51, 0.8);
+  border-color: #a48351;
+  color: rgba(226, 196, 137, 0.5);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.room-info-waiting-text {
+  display: block;
+  padding: 18px;
+  text-align: center;
+  background: rgba(30, 64, 175, 0.6);
+  border: 2px solid #60a5fa;
+  border-radius: 8px;
+  color: #dbeafe;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 768px) {
+  .room-info-panel {
+    padding: 16px;
+  }
+
+  .room-info-code {
+    font-size: 14px;
+  }
+
+  .room-info-copy-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .room-info-start-btn {
+    font-size: 16px;
+    padding: 14px;
+  }
+}

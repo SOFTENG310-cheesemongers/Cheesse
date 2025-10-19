@@ -34,7 +34,10 @@ For this you just need a up-to-date version of docker
 Start by cloning the repository (`git clone https://github.com/SOFTENG310-cheesemongers/Cheesse`), then `cd` into the directory (`cd Cheesse`), then you can run the container by running `docker compose up`.
 
 
+
 ### Development
+
+**Note:** All commands below assume you start in the project root directory. Change into the `frontend` or `backend` directory as needed before running commands.
 
 #### Prerequisites  
 Make sure you have the following installed on your system:  
@@ -42,27 +45,103 @@ Make sure you have the following installed on your system:
 - **npm** (comes with Node.js)
 - If you don't have: node.js go [here](https://nodejs.org/en/download) to get it.
 
-#### Installation  
-Make sure to run the below code after forking and cloning the repository
 
+
+#### Installation
+After forking and cloning the repository, install dependencies for both frontend and backend:
+
+**Frontend:**
 ```bash
 cd frontend
 npm install
 ```
 
-#### Running the Project
-Start the development server:
+**Backend:**
+```bash
+cd backend
+npm install
+```
+
+#### Configuration (Optional)
+Both frontend and backend have `.env.example` files showing available environment variables:
+
+**Frontend** (`frontend/.env.example`):
+- `VITE_BACKEND_URL` - Backend server URL (defaults to `http://localhost:8080`)
+
+**Backend** (`backend/.env.example`):
+- `PORT` - Server port (defaults to `8080`)
+- `ALLOWED_ORIGINS` - Production frontend URLs for CORS (localhost works automatically)
+
+To customize, copy `.env.example` to `.env` in the respective directory and edit values.
+
+#### Running the Project (Frontend)
+Run these commands from the `frontend` directory:
 ```bash
 npm start
 ```
-A link should open automatically on your browser. 
-If it doesn't go to: [here](http://localhost:3000/)
+A link should open automatically in your browser. 
+If it doesn't, go to: [http://localhost:3000/](http://localhost:3000/)
 
-#### Testing
-Run automated tests with:
+#### Testing (Frontend)
+Run these commands from the `frontend` directory:
 ```bash
 npm test
 ```
+
+---
+
+## Backend Development & Testing
+
+The backend is a Node.js/Express server with multiplayer chess logic and real-time communication via Socket.io.
+
+### Prerequisites
+- **Node.js** (v16 or later)
+- **npm** (comes with Node.js)
+
+### Installation
+Run these commands from the `backend` directory:
+```bash
+npm install
+```
+
+### Running the Backend
+Run these commands from the `backend` directory:
+```bash
+npm run dev
+```
+The backend will start and display:
+```
+🧀 Cheesse Backend Server
+
+  Local:   http://localhost:8080
+  Network: http://<your-ip>:8080
+```
+
+### Testing (Backend)
+The backend uses [Vitest](https://vitest.dev/) for unit and integration tests.
+
+Run these commands from the `backend` directory:
+
+Run all backend tests:
+```bash
+npm test
+```
+
+Run in watch mode (auto-restarts on file changes):
+```bash
+npm run test:watch
+```
+
+Run with coverage report:
+```bash
+npm run test:coverage
+```
+
+Test coverage includes:
+- Room management logic (unit tests)
+- Multiplayer game flow (integration tests with real Socket.io server)
+
+---
 
 ## Feature Roadmap  
 
