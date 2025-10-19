@@ -97,6 +97,7 @@
   position: absolute;
   inset: 0;
   background: rgba(0, 200, 0, 0.4);
+  border: 3px solid rgba(0, 255, 0, 0.35);
   pointer-events: none;
   z-index: 1; /* Highlight below piece */
 }
@@ -112,4 +113,13 @@
   background: rgba(0, 150, 0, 0.5);
   border-radius: 50%; /* Creates circle */
   pointer-events: none;
+}
+
+/* Valid move indicator for capture (has piece) */
+.valid-move-indicator.capture {
+  width: 90%;
+  height: 90%;
+  background: rgba(220, 0, 0, 0.35);
+  border: 3px solid rgba(255, 0, 0, 0.5);
+  border-radius: 0;
 }

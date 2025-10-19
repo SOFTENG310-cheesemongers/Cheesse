@@ -40,7 +40,7 @@ export default function Square({ id, isDark, piece, isSelected, isValidMove, onC
     >
       {piece && <Piece id={id} src={pieceMap[piece]} />}
       {isSelected && <div className="selection-highlight" />}
-      {isValidMove && <div className={`valid-move-indicator`} />}
+      {isValidMove && <div className={`valid-move-indicator ${piece ? "capture" : ""}`} />}
     </div>
   );
 }
