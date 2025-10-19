@@ -22,7 +22,10 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
    
   // State to track selected square
   const [selectedSquare, setSelectedSquare] = useState<SquareId | null>(null);
+
+  // State to show valid moves of selected piece
   const [validMoves, setValidMoves] = useState<SquareId[]>([]);
+
   const [isDragging, setIsDragging] = useState(false);
 
   const ranks = flipped ? [...RANKS].reverse() : RANKS;
@@ -125,6 +128,7 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
               const isSelected = selectedSquare === squareId;
               const isValidMove = validMoves.includes(squareId);
 
+              // Sets a piece draggable if it's color's turn
               const canDrag = piece && (
                 (isWhiteTurn && piece.endsWith("white")) || 
                 (!isWhiteTurn && piece.endsWith("black"))

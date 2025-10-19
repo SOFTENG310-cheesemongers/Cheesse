@@ -12,7 +12,14 @@ import { useRef } from "react";
  * @param isDark - Whether the square is dark colored.
  * @param piece - The current piece on the square, if any (else marked as undefined).
  * @param movePiece - Function to move a piece from one square to another.
- */ 
+ * @param isSelected - Indicates if the square is currently selected.
+ * @param isValidMove - Indicates if the square is a valid move destination, to be taken.
+ * @param canDrag - Indicates if the piece on this square can be dragged (your turn).
+ * @param onClick - Handler for when the square is clicked.
+ * @param onDragStart - Handler for when a drag operation starts on this square.
+ * @param onDragOver - Handler for when a dragged item is over this square.
+ * @param onDrop - Handler for when a dragged item is dropped on this square.
+ */
 interface SquareProps {
   readonly id: SquareId;
   readonly isDark: boolean;
