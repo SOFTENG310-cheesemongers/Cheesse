@@ -23,7 +23,7 @@ export default function Board({ flipped = false, onCheckmate }: {
 }) {
   const { pieces, movePiece, boardArray } = useMovePiece();
   const { isWhiteTurn } = useChessStore();
-   
+
   // State to track selected square
   const [selectedSquare, setSelectedSquare] = useState<SquareId | null>(null);
 
@@ -61,7 +61,7 @@ export default function Board({ flipped = false, onCheckmate }: {
       if (selectedSquare !== null) {
         movePiece(selectedSquare, squareId);
       }
-      
+
       clearSelection();
     } else if (pieces[squareId] && isCurrentPlayersPiece(pieces[squareId])) {
       selectSquare(squareId);
@@ -116,7 +116,7 @@ export default function Board({ flipped = false, onCheckmate }: {
 
               // Sets a piece draggable if it's color's turn
               const canDrag = piece && (
-                (isWhiteTurn && piece.endsWith("white")) || 
+                (isWhiteTurn && piece.endsWith("white")) ||
                 (!isWhiteTurn && piece.endsWith("black"))
               );
 

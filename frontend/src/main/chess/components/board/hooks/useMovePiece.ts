@@ -264,7 +264,7 @@ export function useMovePiece() {
         console.warn('[useMovePiece] Cannot move opponent piece');
         return;
       }
-      
+
       // Also validate move using moveCalculator
       const validMoves = calculateValidMoves(from, currentPieces);
       if (!validMoves.includes(to)) {
@@ -278,9 +278,9 @@ export function useMovePiece() {
       // Use ref to get latest pieces (avoid stale closure)
       const currentPieces = piecesRef.current;
       const piece = currentPieces[from];
-      
+
       if (!piece || from === to) return;
-      
+
       // Validate move before sending to server
       const validMoves = calculateValidMoves(from, currentPieces);
       if (!validMoves.includes(to)) {
