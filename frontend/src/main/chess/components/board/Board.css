@@ -85,12 +85,14 @@
     user-select: none;
     pointer-events: auto;
     filter: drop-shadow(4px -2px 3px rgba(64, 36, 1, 0.5));
+    z-index: 2; /* Piece above highlight */
 }
 
-/* Highlighted square styles */
-.highlight {
+/* Selected square highlight */
+.selection-highlight {
   position: absolute;
   inset: 0;
-  background: rgba(0, 255, 0, 0.22);
+  background: rgba(0, 200, 0, 0.4);
   pointer-events: none;
+  z-index: 1; /* Highlight below piece */
 }

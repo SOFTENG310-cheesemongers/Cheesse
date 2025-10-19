@@ -5,6 +5,7 @@ import "./Board.css";
 import Square from "./Square";
 import { FILES, RANKS, type SquareId } from "./BoardConfig";
 import { useMovePiece } from "../board/hooks/useMovePiece";
+import { useState } from "react";
 
 // ---------------- Board Component ---------------- //
 
@@ -15,9 +16,38 @@ import { useMovePiece } from "../board/hooks/useMovePiece";
 
 export default function Board({ flipped = false }: { flipped?: boolean }) {
   const { pieces, movePiece } = useMovePiece();
+   
+  // State to track selected square
+  const [selectedSquare, setSelectedSquare] = useState<SquareId | null>(null);
 
   const ranks = flipped ? [...RANKS].reverse() : RANKS;
   const files = flipped ? [...FILES].reverse() : FILES;
+
+  // Handle square click for selection or movement
+  const handleSquareClick = (squareId: SquareId) => {
+    // If there's already a selected square
+    if (selectedSquare) {
+      // If it's the same square, deselect it
+      if (selectedSquare === squareId) {
+        setSelectedSquare(null);
+      } 
+
+      // If theres another piece of the same colour, select it instead
+      else if (pieces[squareId] && pieces[selectedSquare] &&
+                pieces[squareId]?.endsWith(pieces[selectedSquare]!.endsWith("white") ? "white" : "black")) {
+        setSelectedSquare(squareId);
+      }
+      
+      // If theres no piece, deselect
+      else {
+        setSelectedSquare(null);
+      }
+    } 
+    // If there's no selected square and the clicked square has a piece, select it
+    else if (pieces[squareId]) {
+      setSelectedSquare(squareId);
+    }
+  };
 
   // Render the board
   return (
@@ -30,6 +60,8 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
               const squareId = `${file}${rank}` as SquareId;
               const piece = pieces[squareId];
               const isDark = (rIdx + fIdx) % 2 === 1;
+              const isSelected = selectedSquare === squareId;
+
               return (
                 <Square
                   key={squareId}
@@ -37,6 +69,8 @@ export default function Board({ flipped = false }: { flipped?: boolean }) {
                   isDark={isDark}
                   piece={piece}
                   movePiece={movePiece}
+                  isSelected={isSelected}
+                  onClick={() => handleSquareClick(squareId)}
                 />
               );
             })

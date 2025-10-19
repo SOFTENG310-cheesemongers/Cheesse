@@ -18,6 +18,8 @@ interface SquareProps {
   readonly isDark: boolean;
   readonly piece?: PieceName;
   readonly movePiece: (from: SquareId, to: SquareId) => void;
+  readonly isSelected?: boolean;
+  readonly onClick: () => void;
 }
 
 /**
@@ -27,25 +29,17 @@ interface SquareProps {
  * @param {SquareProps} props - The props for the square.
  * @returns {JSX.Element} - The rendered square component.
  */
-export default function Square({ id, isDark, piece, movePiece }: Readonly<SquareProps>) {
-  // Set up the drop target for the square
-  const [{ isOver }, drop] = useDrop<{ from: SquareId }, void, { isOver: boolean }>(() => ({
-    accept: ItemTypes.PIECE,
-    drop: (item) => movePiece(item.from, id),
-    collect: (monitor) => ({ isOver: monitor.isOver() }),
-  }), [id]);
+export default function Square({ id, isDark, piece, isSelected, onClick }: Readonly<SquareProps>) {
 
   // Render the square
   return (
     <div
-      ref={(node) => {
-        if (node) drop(node);
-      }}
-      className={`square ${isDark ? "dark" : "light"}`}
+      className={`square ${isDark ? "dark" : "light"} ${isSelected ? "selected" : ""}`}
       aria-label={`square ${id}`}
+      onClick={onClick}
     >
       {piece && <Piece id={id} src={pieceMap[piece]} />}
-      {isOver && <div className="highlight" />}
+      {isSelected && <div className="selection-highlight" />}
     </div>
   );
 }
