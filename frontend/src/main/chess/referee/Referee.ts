@@ -59,37 +59,61 @@ export default class Referee {
       return false;
     }
 
+    // First validate the move based on piece type
+    let isValidPieceMove = false;
+
     // Validate the move based on the piece type
     switch (piece) {
       case "pawn_white":
-        return this.validatePawn(true);
+        isValidPieceMove = this.validatePawn(true);
+        break;
 
       case "pawn_black":
-        return this.validatePawn(false);
+        isValidPieceMove = this.validatePawn(false);
+        break;
 
       case "rook_white":
       case "rook_black":
-        return this.validateRook();
+        isValidPieceMove = this.validateRook();
+        break;
 
       case "bishop_white":
       case "bishop_black":
-        return this.validateBishop();
+        isValidPieceMove = this.validateBishop();
+        break;
 
       case "queen_white":
       case "queen_black":
-        return this.validateQueen();
+        isValidPieceMove = this.validateQueen();
+        break;
 
       case "king_white":
       case "king_black":
-        return this.validateKing(dx, dy);
+        isValidPieceMove = this.validateKing(dx, dy);
+        break;
 
       case "knight_white":
       case "knight_black":
-        return this.validateKnight(dx, dy);
+        isValidPieceMove = this.validateKnight(dx, dy);
+        break;
 
       default:
-        return false;
+        isValidPieceMove = false;
     }
+
+    // If the piece move is invalid, return false
+    if (!isValidPieceMove) {
+      return false;
+    }
+
+    // Check if this move would leave the king in check
+    const isWhite = piece.includes("white");
+    if (this.wouldMoveLeaveKingInCheck(board, prevX, prevY, newX, newY, isWhite)) {
+      console.warn(`Invalid move: would leave king in check`);
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -235,5 +259,272 @@ export default class Referee {
   private validateKing(dx: number, dy: number) {
     // King moves one square in any direction
     return Math.abs(dx) <= 1 && Math.abs(dy) <= 1;
+  }
+
+  /**
+   * Finds the position of a king on the board.
+   *
+   * @param isWhite - Whether to find the white or black king.
+   * @returns The position [x, y] of the king, or null if not found.
+   */
+  private findKing(isWhite: boolean): [number, number] | null {
+    const kingPiece = isWhite ? "king_white" : "king_black";
+    
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        if (this.board[y][x] === kingPiece) {
+          return [x, y];
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Checks if a square is under attack by the opposing player.
+   *
+   * @param x - The x-coordinate of the square.
+   * @param y - The y-coordinate of the square.
+   * @param isWhiteKing - Whether we're checking attacks on a white king.
+   * @returns Whether the square is under attack.
+   */
+  private isSquareUnderAttack(x: number, y: number, isWhiteKing: boolean): boolean {
+    const opponentColor = isWhiteKing ? "black" : "white";
+    
+    // Check all opponent pieces to see if they can attack this square
+    for (let boardY = 0; boardY < 8; boardY++) {
+      for (let boardX = 0; boardX < 8; boardX++) {
+        const piece = this.board[boardY][boardX];
+        if (piece && piece.includes(opponentColor)) {
+          if (this.canPieceAttackSquare(piece, boardX, boardY, x, y)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if a piece can attack a specific square.
+   *
+   * @param piece - The piece to check.
+   * @param fromX - The x position of the attacking piece.
+   * @param fromY - The y position of the attacking piece.
+   * @param toX - The x position of the target square.
+   * @param toY - The y position of the target square.
+   * @returns Whether the piece can attack the target square.
+   */
+  private canPieceAttackSquare(piece: string, fromX: number, fromY: number, toX: number, toY: number): boolean {
+    const dx = toX - fromX;
+    const dy = toY - fromY;
+
+    // Store original values
+    const originalPrevX = this.prevX;
+    const originalPrevY = this.prevY;
+    const originalNewX = this.newX;
+    const originalNewY = this.newY;
+    const originalDestPiece = this.destPiece;
+
+    // Set values for attack check
+    this.prevX = fromX;
+    this.prevY = fromY;
+    this.newX = toX;
+    this.newY = toY;
+    this.destPiece = this.board[toY][toX];
+
+    let canAttack = false;
+
+    switch (piece) {
+      case "pawn_white":
+        // White pawns attack diagonally upward
+        canAttack = Math.abs(dx) === 1 && dy === 1;
+        break;
+      
+      case "pawn_black":
+        // Black pawns attack diagonally downward
+        canAttack = Math.abs(dx) === 1 && dy === -1;
+        break;
+
+      case "rook_white":
+      case "rook_black":
+        canAttack = this.validateRook();
+        break;
+
+      case "bishop_white":
+      case "bishop_black":
+        canAttack = this.validateBishop();
+        break;
+
+      case "queen_white":
+      case "queen_black":
+        canAttack = this.validateQueen();
+        break;
+
+      case "king_white":
+      case "king_black":
+        canAttack = this.validateKing(dx, dy);
+        break;
+
+      case "knight_white":
+      case "knight_black":
+        canAttack = this.validateKnight(dx, dy);
+        break;
+
+      default:
+        canAttack = false;
+    }
+
+    // Restore original values
+    this.prevX = originalPrevX;
+    this.prevY = originalPrevY;
+    this.newX = originalNewX;
+    this.newY = originalNewY;
+    this.destPiece = originalDestPiece;
+
+    return canAttack;
+  }
+
+  /**
+   * Checks if a king is currently in check.
+   *
+   * @param board - The current board state.
+   * @param isWhite - Whether to check the white or black king.
+   * @returns Whether the king is in check.
+   */
+  isKingInCheck(board: (string | undefined)[][], isWhite: boolean): boolean {
+    this.board = board;
+    const kingPosition = this.findKing(isWhite);
+    
+    if (!kingPosition) {
+      return false; // King not found
+    }
+    
+    return this.isSquareUnderAttack(kingPosition[0], kingPosition[1], isWhite);
+  }
+
+  /**
+   * Checks if a move would leave the king in check.
+   *
+   * @param board - The current board state.
+   * @param fromX - Starting x position.
+   * @param fromY - Starting y position.
+   * @param toX - Target x position.
+   * @param toY - Target y position.
+   * @param isWhite - Whether it's white's move.
+   * @returns Whether the move would leave the king in check.
+   */
+  wouldMoveLeaveKingInCheck(
+    board: (string | undefined)[][],
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+    isWhite: boolean
+  ): boolean {
+    // Create a copy of the board to simulate the move
+    const tempBoard = board.map(row => [...row]);
+    
+    // Make the move on the temporary board
+    const piece = tempBoard[fromY][fromX];
+    tempBoard[toY][toX] = piece;
+    tempBoard[fromY][fromX] = undefined;
+    
+    // Check if the king would be in check after this move
+    return this.isKingInCheck(tempBoard, isWhite);
+  }
+
+  /**
+   * Gets all valid moves for a player.
+   *
+   * @param board - The current board state.
+   * @param isWhite - Whether to get moves for white or black.
+   * @returns Whether there are any valid moves.
+   */
+  hasValidMoves(board: (string | undefined)[][], isWhite: boolean): boolean {
+    this.board = board;
+    const color = isWhite ? "white" : "black";
+    
+    // Check all pieces of the current player
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        const piece = board[y][x];
+        if (piece && piece.includes(color)) {
+          // Check all possible destination squares for this piece
+          for (let newY = 0; newY < 8; newY++) {
+            for (let newX = 0; newX < 8; newX++) {
+              if (newX === x && newY === y) continue; // Skip same position
+              
+              // Check if this move is valid according to piece rules
+              if (this.isValidMove(board, x, y, newX, newY, piece, board[newY][newX])) {
+                // Check if this move would leave the king in check
+                if (!this.wouldMoveLeaveKingInCheck(board, x, y, newX, newY, isWhite)) {
+                  return true; // Found at least one valid move
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    return false; // No valid moves found
+  }
+
+  /**
+   * Checks if the current position is checkmate.
+   *
+   * @param board - The current board state.
+   * @param isWhite - Whether to check for white or black checkmate.
+   * @returns Whether it's checkmate.
+   */
+  isCheckmate(board: (string | undefined)[][], isWhite: boolean): boolean {
+    // First check if the king is in check
+    if (!this.isKingInCheck(board, isWhite)) {
+      return false;
+    }
+    
+    // If in check, see if there are any valid moves to escape
+    return !this.hasValidMoves(board, isWhite);
+  }
+
+  /**
+   * Checks if the current position is stalemate.
+   *
+   * @param board - The current board state.
+   * @param isWhite - Whether to check for white or black stalemate.
+   * @returns Whether it's stalemate.
+   */
+  isStalemate(board: (string | undefined)[][], isWhite: boolean): boolean {
+    // King must not be in check for stalemate
+    if (this.isKingInCheck(board, isWhite)) {
+      return false;
+    }
+    
+    // No valid moves available
+    return !this.hasValidMoves(board, isWhite);
+  }
+
+  /**
+   * Gets the current game status.
+   *
+   * @param board - The current board state.
+   * @param isWhiteTurn - Whether it's currently white's turn.
+   * @returns The game status: 'normal', 'check', 'checkmate', or 'stalemate'.
+   */
+  getGameStatus(board: (string | undefined)[][], isWhiteTurn: boolean): 'normal' | 'check' | 'checkmate' | 'stalemate' {
+    if (this.isCheckmate(board, isWhiteTurn)) {
+      return 'checkmate';
+    }
+    
+    if (this.isStalemate(board, isWhiteTurn)) {
+      return 'stalemate';
+    }
+    
+    if (this.isKingInCheck(board, isWhiteTurn)) {
+      return 'check';
+    }
+    
+    return 'normal';
   }
 }
