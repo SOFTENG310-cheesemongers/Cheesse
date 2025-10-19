@@ -1,3 +1,4 @@
+import { randomInt } from 'crypto';
 import { Server, Socket } from 'socket.io';
 import { Color } from '../types';
 import { rooms, createRoom, getPlayerColor, getAvailableColor } from '../state/rooms';
@@ -6,11 +7,11 @@ import { OpponentJoinedDto, MoveDto, JoinedDto } from '../dto/types';
 
 export function setupSocketHandlers(io: Server) {
   io.on('connection', (socket: Socket) => {
-    console.log(`Socket connected: ${socket.id}`);
     // Create a new room via socket (alternative to REST)
     socket.on('createRoom', (payload: { preferredColor?: Color } | undefined, cb?: (data: any) => void) => {
       const state = createRoom(payload?.preferredColor);
-      const color: Color = payload?.preferredColor ?? (Math.random() < 0.5 ? 'white' : 'black');
+      // Use crypto.randomInt for cryptographically secure random color selection
+      const color: Color = payload?.preferredColor ?? (randomInt(0, 2) === 0 ? 'white' : 'black');
       // Attach creator to their chosen or random color if free
       if (!state.players[color]) state.players[color] = socket.id;
       socket.join(state.roomId);
@@ -119,7 +120,6 @@ export function setupSocketHandlers(io: Server) {
     });
 
     socket.on('disconnect', () => {
-      console.log(`Socket disconnected: ${socket.id}`);
       for (const [roomId, room] of rooms.entries()) {
         const wasInRoom = Object.values(room.players).includes(socket.id);
         if (wasInRoom) {

@@ -1,3 +1,4 @@
+import { randomInt } from 'crypto';
 import { Color, GameState } from '../types';
 
 // In-memory room state; can be swapped for Redis/DB later
@@ -6,7 +7,8 @@ export const rooms = new Map<string, GameState>();
 export function generateRoomId(): string {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // avoid ambiguous chars
   let id = '';
-  for (let i = 0; i < 6; i++) id += alphabet[Math.floor(Math.random() * alphabet.length)];
+  // Use crypto.randomInt for cryptographically secure random room IDs
+  for (let i = 0; i < 6; i++) id += alphabet[randomInt(0, alphabet.length)];
   return id;
 }
 
