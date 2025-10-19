@@ -79,6 +79,9 @@ export default function StartPage() {
                 <div className="start-page-div">
                     <h1 className="cheesse">Cheesse</h1>
                     <div id="buttons-div" className="buttons-div">
+                        <h2>
+                            Game mode
+                        </h2>
                         <div className="play-style-buttons">
                             <button className="option-button"
                             onClick={() => onPlayStyleButtonClick(1)}
@@ -102,6 +105,9 @@ export default function StartPage() {
                                 <span>&nbsp;&nbsp;&nbsp; Online PvP</span>
                             </button>
                         </div>
+                        <h2>
+                            Duration
+                        </h2>
                         <div className="timer-buttons">
                             <button 
                             className="option-button" 
