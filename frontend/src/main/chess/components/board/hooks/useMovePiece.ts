@@ -78,6 +78,11 @@ export function useMovePiece() {
 
   // Effect to handle undo when trigger changes
   useEffect(() => {
+    // Skip undo in multiplayer - server is source of truth
+    if (mp && mp.roomId) {
+      return;
+    }
+
     if (undoTrigger > lastProcessedUndoTrigger.current && moveDetails.length > 0) {
       // Update the processed trigger to prevent repeating
       lastProcessedUndoTrigger.current = undoTrigger;
@@ -121,10 +126,15 @@ export function useMovePiece() {
         undoMoveLog();
       }
     }
-  }, [undoTrigger, moveDetails, pieces, changeTurn, undoLastMove, undoMoveLog]);
+  }, [mp, undoTrigger, moveDetails, pieces, changeTurn, undoLastMove, undoMoveLog]);
 
   // Effect to handle redo when trigger changes
   useEffect(() => {
+    // Skip redo in multiplayer - server is source of truth
+    if (mp && mp.roomId) {
+      return;
+    }
+
     if (redoTrigger > lastProcessedRedoTrigger.current) {
       // Update the processed trigger to prevent repeating
       lastProcessedRedoTrigger.current = redoTrigger;
@@ -169,7 +179,7 @@ export function useMovePiece() {
         redoMoveLog(moveToRedo.notation);
       }
     }
-  }, [redoTrigger, pieces, changeTurn, redoLastMove, redoMoveLog]);
+  }, [mp, redoTrigger, pieces, changeTurn, redoLastMove, redoMoveLog]);
 
   // Apply moves from multiplayer - reconstruct entire board state from server moves
   const lastRecordedMoveCount = useRef(0);
