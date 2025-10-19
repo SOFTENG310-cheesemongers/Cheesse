@@ -62,6 +62,17 @@ cd backend
 npm install
 ```
 
+#### Configuration (Optional)
+Both frontend and backend have `.env.example` files showing available environment variables:
+
+**Frontend** (`frontend/.env.example`):
+- `VITE_BACKEND_URL` - Backend server URL (defaults to `http://localhost:8080`)
+
+**Backend** (`backend/.env.example`):
+- `PORT` - Server port (defaults to `8080`)
+- `ALLOWED_ORIGINS` - Production frontend URLs for CORS (localhost works automatically)
+
+To customize, copy `.env.example` to `.env` in the respective directory and edit values.
 
 #### Running the Project (Frontend)
 Run these commands from the `frontend` directory:
@@ -87,15 +98,26 @@ The backend is a Node.js/Express server with multiplayer chess logic and real-ti
 - **Node.js** (v16 or later)
 - **npm** (comes with Node.js)
 
-
 ### Installation
 Run these commands from the `backend` directory:
 ```bash
 npm install
 ```
 
+### Running the Backend
+Run these commands from the `backend` directory:
+```bash
+npm run dev
+```
+The backend will start and display:
+```
+🧀 Cheesse Backend Server
 
-### Running Backend Tests
+  Local:   http://localhost:8080
+  Network: http://<your-ip>:8080
+```
+
+### Testing (Backend)
 The backend uses [Vitest](https://vitest.dev/) for unit and integration tests.
 
 Run these commands from the `backend` directory:
