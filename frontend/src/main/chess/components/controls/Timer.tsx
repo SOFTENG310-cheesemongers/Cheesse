@@ -1,61 +1,80 @@
 import "./Timer.css";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useChessStore } from "../../../app/chessStore";
+import pauseIcon from "../../../assets/pause.png";
 
-export default function Timer({ initialSeconds }: { initialSeconds: number }) {
-
-    const [whiteSeconds, setWhiteSeconds] = useState(initialSeconds);
-    const [blackSeconds, setBlackSeconds] = useState(initialSeconds);
-
-
-    const [isWhiteTurn, changeTurn] = useState(true); // This should be managed by the game state
-
-    const [isRunning, setIsRunning] = useState(true);
+export default function Timer() {
+    const {
+        whiteSeconds,
+        blackSeconds,
+        isWhiteTurn,
+        isRunning,
+        setWhiteSeconds,
+        setBlackSeconds,
+        setMenuOpen,
+        setMenuMode,
+        setRunning,
+        setMenuResult,
+    } = useChessStore();
 
     const formatTime = (totalSeconds: number) => {
         const minutes = Math.floor(totalSeconds / 60);
         const remainingSeconds = totalSeconds % 60;
         return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
-
     useEffect(() => {
-        let timer: NodeJS.Timeout;
+        let timer: NodeJS.Timeout | undefined;
         if (isRunning) {
             timer = setInterval(() => {
                 if (!isRunning) return;
                 if (isWhiteTurn) {
-                    setWhiteSeconds(prev => Math.max(prev - 1, 0));
+                    setWhiteSeconds((prev: number) => {
+                        const next = Math.max(prev - 1, 0);
+                        if (next === 0) {
+                            // white ran out -> black wins
+                            setMenuResult('black');
+                            setRunning(false);
+                        }
+                        return next;
+                    });
                 } else {
-                    setBlackSeconds(prev => Math.max(prev - 1, 0));
+                    setBlackSeconds((prev: number) => {
+                        const next = Math.max(prev - 1, 0);
+                        if (next === 0) {
+                            // black ran out -> white wins
+                            setMenuResult('white');
+                            setRunning(false);
+                        }
+                        return next;
+                    });
                 }
             }, 1000);
         }
-        return () => clearInterval(timer);
-    }, [isRunning, isWhiteTurn]);
+        return () => { if (timer) clearInterval(timer); };
+    }, [isRunning, isWhiteTurn, setWhiteSeconds, setBlackSeconds]);
 
     const onPauseClick = () => {
-        setIsRunning(!isRunning);
-        console.log("Timer paused/resumed");
+        // open the in-game menu in pause mode and stop timers
+        setMenuMode('pause');
+        setMenuOpen(true);
+        setRunning(false);
     };
 
     return (
         <div className="timerWrapper">
             <div className="whiteTimerContainer" 
-                onClick={() => isRunning && isWhiteTurn ? changeTurn(!isWhiteTurn) : null}
-                onKeyDown={(e) => (e.key === "Enter" && isWhiteTurn) ? changeTurn(!isWhiteTurn) : null}
                 style={{ backgroundColor: isWhiteTurn ? "#ffffff" : "transparent" }}
             >
                 <h3 className="whiteTimer" style={{ color: "black" }}>{formatTime(whiteSeconds)}</h3>
             </div>
             
-            <img src="/src/main/assets/pause.png" 
+            <img src={pauseIcon} 
                 alt="Timer" className="timerImage" style={{ width: "65px", height: "65px" }} 
                 onClick={onPauseClick}
                 onKeyDown={(e) => (e.key === "space") ? onPauseClick() : null}
                 />
             
             <div className="blackTimerContainer" 
-                onClick={() => isRunning &&  !isWhiteTurn ? changeTurn(!isWhiteTurn) : null} 
-                onKeyDown={(e) => (e.key === "Enter" && !isWhiteTurn) ? changeTurn(!isWhiteTurn) : null}
                 style={{ backgroundColor: !isWhiteTurn ? "#111111" : "transparent" }}
                 >
                 <h3 className="blackTimer" style={{ color: !isWhiteTurn ? "#ffffff" : "#000000" }}>{formatTime(blackSeconds)}</h3>

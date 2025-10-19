@@ -2,8 +2,19 @@
 
 // ---------------- Imports ---------------- //
 import "./StartPage.css"
+
 import GamePage from './GamePage'
+import ConnectStatus from '../components/ConnectStatus';
+import RoomForm from './online/RoomForm';
+import RoomInfo from './online/RoomInfo';
+
+import type { Color } from '../multiplayer/types';
+
 import { useState } from "react";
+import { ChessProvider, useChessStore } from '../app/chessStore';
+import { MultiplayerProvider, useMultiplayer } from '../multiplayer/MultiplayerProvider';
+import { useMoveLog } from '../chess/components/history/moveLogStore';
+
 import personPlayerIcon  from "..\\assets\\startMenu\\personPlayerIcon.png";
 import botPlayerIcon  from "..\\assets\\startMenu\\botPlayerIcon.png";
 import onlineMatchmakingIcon  from "..\\assets\\startMenu\\onlineMatchmakingIcon.png";
@@ -18,9 +29,17 @@ import longDurationGameIcon  from "..\\assets\\startMenu\\longDurationGameIcon.p
 export default function StartPage() {
     const [gamePage, setGamePage] = useState(false)
     const [buttonsVisible, setButtonsVisible] = useState(true)
+    const [onlineVisible, setOnlineVisible] = useState(false)
     const showGamePage = () => {
         setGamePage(true);
         setButtonsVisible(false)
+    }
+
+    const returnToMenu = () => {
+        setGamePage(false);
+        setButtonsVisible(true);
+        changeSelectTimer(0); // Reset timer selection
+        setInitialSeconds(0); // Reset initial seconds
     }
 
     const [selectTimer, changeSelectTimer] = useState(0); // 0 means no timer selected
@@ -84,7 +103,7 @@ export default function StartPage() {
                         </h2>
                         <div className="play-style-buttons">
                             <button className="option-button"
-                            onClick={() => onPlayStyleButtonClick(1)}
+                            onClick={() => { onPlayStyleButtonClick(1); setOnlineVisible(false); }}
                             style={{ border: selectPlayStyle === 1 ? '10px solid gold' : 'none' }}
                             >
                                 <img src={personPlayerIcon} alt="Person" width={16}/>
@@ -100,7 +119,7 @@ export default function StartPage() {
                                 <span>PvC</span>
                             </button>
                             <button className="option-button"
-                            onClick={() => onPlayStyleButtonClick(3)}
+                            onClick={() => { onPlayStyleButtonClick(3); setOnlineVisible(true); setButtonsVisible(false);}}
                             style={{ border: selectPlayStyle === 3 ? '10px solid gold' : 'none' }}
                             >
                                 <img src={onlineMatchmakingIcon} alt="Online" width={20}/>
@@ -145,7 +164,152 @@ export default function StartPage() {
                     </div>
                 </div>
             )}
-            {gamePage ? <GamePage initialSeconds={initialSeconds} /> : null}
+            {/* Online lobby flow */}
+            {onlineVisible && (
+                <MultiplayerProvider>
+                    {!gamePage ? (
+                        <OnlineLobby
+                            onCancel={() => { setOnlineVisible(false); setButtonsVisible(true); }}
+                            onJoined={() => setGamePage(true)}
+                        />
+                    ) : null}
+                    {gamePage ? (
+                        <ChessProvider>
+                            <GameWithProvider initialSeconds={initialSeconds} onReturnToMenu={returnToMenu} />
+                        </ChessProvider>
+                    ) : null}
+                </MultiplayerProvider>
+            )}
+            {gamePage ? (
+                !onlineVisible ? (
+                    <ChessProvider>
+                        <GameWithProvider initialSeconds={initialSeconds} onReturnToMenu={returnToMenu} />
+                    </ChessProvider>
+                ) : null
+            ) : null}
+        </div>
+    );
+}
+
+function GameWithProvider({ initialSeconds, onReturnToMenu }: { initialSeconds: number; onReturnToMenu: () => void }) {
+    // This component runs inside ChessProvider and can set selectedSeconds
+    const { setSelectedSeconds, resetGame } = useChessStore();
+    const { resetMoveLog } = useMoveLog();
+
+    useEffect(() => {
+        // Reset game state when entering a new game
+        resetGame();
+        resetMoveLog();
+        if (initialSeconds > 0) setSelectedSeconds(initialSeconds);
+        else setSelectedSeconds(null);
+        // Only run on mount or when initialSeconds changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialSeconds]);
+
+    return <GamePage onReturnToMenu={onReturnToMenu} />;
+}
+
+function OnlineLobby({ onCancel, onJoined }: { onCancel: () => void; onJoined: () => void }) {
+    const mp = useMultiplayer();
+    const connected = mp?.connected ?? false;
+    const [error, setError] = useState<string | null>(null);
+    const [inRoom, setInRoom] = useState(false);
+    const [isHost, setIsHost] = useState(false);
+
+    // Reset game state when lobby mounts (new game)
+    useEffect(() => {
+        mp.resetGameState();
+    }, []);
+
+    // Only keep retrying while this component is mounted — use stable connect/disconnect
+    const { connect, disconnect } = mp;
+    useEffect(() => {
+        try { connect(); } catch { /* ignore */ }
+        // DON'T disconnect on unmount - we might be transitioning to the game!
+        // The MultiplayerProvider itself will handle cleanup when it unmounts
+        return () => { 
+            // Cleanup is handled by MultiplayerProvider
+        };
+    }, [connect, disconnect]);
+
+    // Navigate to game when gameStarted event received
+    useEffect(() => {
+        if (mp.gameStarted && inRoom) {
+            onJoined();
+        }
+    }, [mp.gameStarted, inRoom, onJoined]);
+
+    const handleCreateRoom = async (preferredColor: Color) => {
+        try {
+            setError(null);
+            if (!connected) throw new Error('offline');
+            await mp.createRoom(preferredColor);
+            setInRoom(true);
+            setIsHost(true);
+        } catch (e: any) {
+            setError(e?.message ?? 'Failed to create room');
+        }
+    };
+
+    const handleJoinRoom = async (roomId: string) => {
+        try {
+            setError(null);
+            if (!connected) throw new Error('offline');
+            const res = await mp.joinRoom(roomId);
+            if ('error' in res) {
+                setError(res.error);
+                return;
+            }
+            setInRoom(true);
+            setIsHost(false);
+        } catch (e: any) {
+            setError(e?.message ?? 'Failed to join room');
+        }
+    };
+
+    const handleStartGame = () => {
+        try {
+            mp.startGame();
+        } catch (e: any) {
+            setError(e?.message ?? 'Failed to start game');
+        }
+    };
+
+    return (
+        <div className="start-page-div online-lobby">
+            <div className="lobby-inner">
+                <h2 className="lobby-title">Online Lobby</h2>
+
+                <ConnectStatus 
+                    connected={connected} 
+                    connecting={mp.connecting} 
+                    error={mp.connectionError} 
+                />
+
+                {inRoom && mp.roomId ? (
+                    <RoomInfo 
+                        roomId={mp.roomId} 
+                        myColor={mp.myColor}
+                        opponentConnected={mp.opponentConnected}
+                        isHost={isHost}
+                        onStartGame={handleStartGame}
+                    />
+                ) : (
+                    <RoomForm
+                        connected={connected}
+                        onCreateRoom={handleCreateRoom}
+                        onJoinRoom={handleJoinRoom}
+                    />
+                )}
+
+                {error ? <div className="lobby-error">{error}</div> : null}
+
+                <div className="lobby-actions-row">
+                    <button className="option-button" onClick={() => { 
+                        onCancel(); 
+                    }}>Back</button>
+                </div>
+            </div>
         </div>
     );
 }

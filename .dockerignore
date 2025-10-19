@@ -1,2 +1,22 @@
 node_modules
 dist
+
+# Test files
+**/test/
+**/*.test.ts
+**/*.test.tsx
+**/*.test.js
+**/*.test.jsx
+**/coverage/
+
+# Environment files
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore

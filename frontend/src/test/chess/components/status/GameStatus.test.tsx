@@ -2,10 +2,21 @@ import { render, screen } from '@testing-library/react';
 import { GameStatus } from '../../../../main/chess/components/status/GameStatus';
 
 describe('GameStatus', () => {
+  const mockBoard: string[][] = [
+    ['rook_black', 'knight_black', 'bishop_black', 'queen_black', 'king_black', 'bishop_black', 'knight_black', 'rook_black'],
+    ['pawn_black', 'pawn_black', 'pawn_black', 'pawn_black', 'pawn_black', 'pawn_black', 'pawn_black', 'pawn_black'],
+    ['', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', ''],
+    ['pawn_white', 'pawn_white', 'pawn_white', 'pawn_white', 'pawn_white', 'pawn_white', 'pawn_white', 'pawn_white'],
+    ['rook_white', 'knight_white', 'bishop_white', 'queen_white', 'king_white', 'bishop_white', 'knight_white', 'rook_white']
+  ];
+
   it('renders without crashing', () => {
-    render(<GameStatus />);
-    // Since the component is not implemented, expect nothing to be rendered
-    expect(screen.queryByText(/current turn/i)).toBeNull();
+    render(<GameStatus board={mockBoard} />);
+    // Component should render with turn information
+    expect(screen.getByText(/turn/i)).toBeInTheDocument();
   });
 
   // Example test for future implementation
