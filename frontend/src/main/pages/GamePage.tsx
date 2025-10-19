@@ -165,8 +165,8 @@ export default function GamePage({ onReturnToMenu }: GamePageProps = {}) {
 
       <div className="board-timer-wrapper">
   <Board flipped={!!(mp && mp.roomId && mp.myColor === 'black')} />
-        {/** If selectedSeconds in the store is non-null we have a timer */}
-        {useChessStore().selectedSeconds !== null ? <Timer /> : <div className="Timerfiller"></div>}
+        {/** If selectedSeconds in the store is non-null we have a timer (but not in multiplayer) */}
+        {useChessStore().selectedSeconds !== null && !inMultiplayerGame ? <Timer /> : <div className="Timerfiller"></div>}
       </div>
 
       <GameOptionsSidebar

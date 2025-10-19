@@ -12,7 +12,7 @@
 
 /* Sidebar for the move log */
 .game-move-log-sidebar {
-    background-image: url("../../assets/menuBoard.png");
+    background-image: url(/src/main/assets/menuBoard.png);
     background-repeat: no-repeat;
     background-size: cover;
 

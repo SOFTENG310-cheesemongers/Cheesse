@@ -5,7 +5,7 @@
   width: fit-content;
 
   margin-bottom: -25px;
-  background-image: url("../../../assets/timerBackground.png");
+  background-image: url(/src/main/assets/TimerBackground.png);
   background-position: center;
   background-size: cover;
   image-rendering: pixelated;
