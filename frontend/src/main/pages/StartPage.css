@@ -13,7 +13,7 @@
 }
 
 .cheesse {
-    font-size: 27vh;
+    font-size: 15vh;
     padding: 0px;
     line-height: 1em;
     line-padding: 0px;
@@ -42,7 +42,10 @@
 }
 
 .option-button {
-    width: 10vw;
+    width: 7vw;
+    border-radius: 20%;
+    border-color: black;
+    border: 5px;
     height: 12vh;
     padding: 0px;
 }
