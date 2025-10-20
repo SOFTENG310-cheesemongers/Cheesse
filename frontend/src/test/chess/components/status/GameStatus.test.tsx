@@ -1,5 +1,7 @@
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { GameStatus } from '../../../../main/chess/components/status/GameStatus';
+import { ChessProvider } from '../../../../main/app/chessStore';
 
 describe('GameStatus', () => {
   const mockBoard: string[][] = [
@@ -14,7 +16,11 @@ describe('GameStatus', () => {
   ];
 
   it('renders without crashing', () => {
-    render(<GameStatus board={mockBoard} />);
+    render(
+      <ChessProvider>
+        <GameStatus board={mockBoard} />
+      </ChessProvider>
+    );
     // Component should render with turn information
     expect(screen.getByText(/turn/i)).toBeInTheDocument();
   });
