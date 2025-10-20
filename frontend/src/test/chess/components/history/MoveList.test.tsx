@@ -1,10 +1,12 @@
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import MoveList from '../../../../main/chess/components/history/MoveList';
 
 describe('MoveList', () => {
   it('renders without crashing with empty moves', () => {
-    render(<MoveList moves={[]} />);
-    expect(screen.getByRole('list', { hidden: true })).toBeInTheDocument();
+    const { container } = render(<MoveList moves={[]} />);
+    // Component renders a div.move-list, not a list element
+    expect(container.querySelector('.move-list')).toBeInTheDocument();
   });
 
   it('renders a single move with only white', () => {
@@ -37,7 +39,8 @@ describe('MoveList', () => {
   it('applies custom style', () => {
     const style = { backgroundColor: 'red' };
     const { container } = render(<MoveList moves={[]} style={style} />);
-    expect(container.firstChild).toHaveStyle('background-color: red');
+    // jsdom converts color names to RGB format
+    expect(container.firstChild).toHaveStyle('background-color: rgb(255, 0, 0)');
   });
 
   it('renders empty span for missing black move', () => {
