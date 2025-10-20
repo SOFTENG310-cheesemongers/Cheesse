@@ -1,21 +1,21 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useRecordMove } from '../../../../../main/chess/components/board/hooks/useRecordMove';
-const moveLogStore = require('../../../../../../main/chess/components/history/moveLogStore');
+
+// Create a mock function for addMove
+const addMoveMock = vi.fn();
 
 // Mock the useMoveLog hook and its addMove function
-jest.mock('../../../../../../main/chess/components/history/moveLogStore', () => ({
+vi.mock('../../../../../main/chess/components/history/moveLogStore', () => ({
   useMoveLog: () => ({
-    addMove: jest.fn(),
+    addMove: addMoveMock,
   }),
 }));
 
 describe('useRecordMove', () => {
-  let addMoveMock: jest.Mock;
-
   beforeEach(() => {
-    // Reset the mock before each test
-    jest.resetModules();
-    addMoveMock = moveLogStore.useMoveLog().addMove;
+    // Clear the mock calls before each test
+    addMoveMock.mockClear();
   });
 
   it('records a pawn move in standard notation', () => {

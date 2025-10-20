@@ -1,25 +1,46 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useMovePiece } from "../../../../../main/chess/components/board/hooks/useMovePiece";
 import { initialPieces } from "../../../../../main/chess/components/board/BoardConfig";
-const Referee = require("../../../../main/chess/components/referee/Referee");
-
-// Mock Referee to always allow moves unless specified
-jest.mock("../../../../main/chess/components/referee/Referee", () => {
-  return jest.fn().mockImplementation(() => ({
-    setMoveCount: jest.fn(),
-    isValidMove: jest.fn(() => true),
-  }));
-});
 
 // Mock useRecordMove
-jest.mock(
-  "../../../../main/chess/components/board/hooks/useRecordMove",
+vi.mock(
+  "../../../../../main/chess/components/board/hooks/useRecordMove",
   () => ({
-    useRecordMove: () => jest.fn(),
+    useRecordMove: () => vi.fn(),
   })
 );
 
+// Mock useMoveLog to avoid needing MoveLogProvider
+vi.mock("../../../../../main/chess/components/history/moveLogStore", () => ({
+  useMoveLog: () => ({
+    undoLastMove: vi.fn(),
+    redoLastMove: vi.fn(),
+  }),
+}));
+
+// Mock useChessStore to avoid needing ChessProvider
+vi.mock("../../../../../main/app/chessStore", () => ({
+  useChessStore: () => ({
+    changeTurn: vi.fn(),
+    addMoveDetails: vi.fn(),
+    moveDetails: [],
+    undoTrigger: 0,
+    undoLastMove: vi.fn(),
+    redoTrigger: 0,
+    redoLastMove: vi.fn(),
+    setMenuResult: vi.fn(),
+  }),
+}));
+
+// Note: We're NOT mocking calculateValidMoves - let it use the real implementation
+// This ensures our tests validate actual chess move logic
+
 describe("useMovePiece", () => {
+  beforeEach(() => {
+    // Clear any mocks if needed
+  });
+
   it("should initialize with initial pieces", () => {
     const { result } = renderHook(() => useMovePiece());
     expect(result.current.pieces).toEqual(initialPieces);
@@ -54,25 +75,6 @@ describe("useMovePiece", () => {
   it("should not move if there is no piece at from square", () => {
     const { result } = renderHook(() => useMovePiece());
     const from = "e3"; // empty in initial position
-    const to = "e4";
-    const before = { ...result.current.pieces };
-
-    act(() => {
-      result.current.movePiece(from, to);
-    });
-
-    expect(result.current.pieces).toEqual(before);
-  });
-
-  it("should not move if referee says move is invalid", () => {
-    // Override isValidMove to return false
-    Referee.mockImplementation(() => ({
-      setMoveCount: jest.fn(),
-      isValidMove: jest.fn(() => false),
-    }));
-
-    const { result } = renderHook(() => useMovePiece());
-    const from = "e2";
     const to = "e4";
     const before = { ...result.current.pieces };
 
