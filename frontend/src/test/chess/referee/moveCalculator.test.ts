@@ -15,7 +15,11 @@ function getSortedMoves(square: SquareId, pieces: Partial<Record<SquareId, Piece
 }
 
 function expectMovesToEqual(square: SquareId, pieces: Partial<Record<SquareId, PieceName>>, expected: SquareId[]) {
-  expect(getSortedMoves(square, pieces)).toEqual(expected.sort(sortSquares));
+  const actual = calculateValidMoves(square, pieces);
+  expect(actual).toHaveLength(expected.length);
+  expected.forEach(move => {
+    expect(actual).toContain(move);
+  });
 }
 
 describe("calculateValidMoves", () => {

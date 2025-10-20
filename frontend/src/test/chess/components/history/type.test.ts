@@ -1,4 +1,5 @@
 // type.test.ts
+import { describe, it, expect } from 'vitest';
 
 // Example type to test
 type Move = {

@@ -15,12 +15,12 @@ import { ChessProvider, useChessStore } from '../app/chessStore';
 import { MultiplayerProvider, useMultiplayer } from '../multiplayer/MultiplayerProvider';
 import { useMoveLog } from '../chess/components/history/moveLogStore';
 
-import personPlayerIcon  from "..\\assets\\startMenu\\personPlayerIcon.png";
-import botPlayerIcon  from "..\\assets\\startMenu\\botPlayerIcon.png";
-import onlineMatchmakingIcon  from "..\\assets\\startMenu\\onlineMatchmakingIcon.png";
-import shortDurationGameIcon  from "..\\assets\\startMenu\\shortDurationGameIcon.png";
-import mediumDurationGameIcon  from "..\\assets\\startMenu\\mediumDurationGameIcon.png";
-import longDurationGameIcon  from "..\\assets\\startMenu\\longDurationGameIcon.png";
+import personPlayerIcon  from "../assets/startMenu/personPlayerIcon.png";
+import botPlayerIcon  from "../assets/startMenu/botPlayerIcon.png";
+import onlineMatchmakingIcon  from "../assets/startMenu/onlineMatchmakingIcon.png";
+import shortDurationGameIcon  from "../assets/startMenu/shortDurationGameIcon.png";
+import mediumDurationGameIcon  from "../assets/startMenu/mediumDurationGameIcon.png";
+import longDurationGameIcon  from "../assets/startMenu/longDurationGameIcon.png";
 
 /**
  * StartPage component - Displays the initial game setup options.
@@ -52,7 +52,7 @@ export default function StartPage() {
         setInitialSeconds(seconds);
     }
 
-    const setPlayStyle = (playStyle: string) => {
+    const setPlayStyle = (_playStyle: string) => {
         // implement play style selection once other play styles have been implemented
     }
 
