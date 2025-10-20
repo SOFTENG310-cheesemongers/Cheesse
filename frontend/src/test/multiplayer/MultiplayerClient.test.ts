@@ -1,15 +1,16 @@
+import { describe, it, expect, vi } from "vitest";
 import { MultiplayerClient } from "../../main/multiplayer/client";
 
 // Mock socket.io-client
-jest.mock("socket.io-client", () => ({
-  io: jest.fn(() => ({
+vi.mock("socket.io-client", () => ({
+  io: vi.fn(() => ({
     connected: false,
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    on: jest.fn(),
-    once: jest.fn(),
-    off: jest.fn(),
-    emit: jest.fn(),
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    on: vi.fn(),
+    once: vi.fn(),
+    off: vi.fn(),
+    emit: vi.fn(),
   })),
 }));
 
