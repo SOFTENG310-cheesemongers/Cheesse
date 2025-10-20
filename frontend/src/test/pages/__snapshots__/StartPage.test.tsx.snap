@@ -1,0 +1,122 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`StartPage > matches snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="start-page-wrapper"
+  >
+    <div
+      class="start-page-div"
+    >
+      <h1
+        class="cheesse"
+      >
+        Cheesse
+      </h1>
+      <div
+        class="buttons-div"
+        id="buttons-div"
+      >
+        <h2>
+          Game mode
+        </h2>
+        <div
+          class="play-style-buttons"
+        >
+          <button
+            class="option-button"
+          >
+            <img
+              alt="Person"
+              src="/src/main/assets/startMenu/personPlayerIcon.png"
+              width="16"
+            />
+            <br />
+            <span>
+              Local PvP
+            </span>
+          </button>
+          <button
+            class="option-button"
+          >
+            <img
+              alt="Bot"
+              src="/src/main/assets/startMenu/botPlayerIcon.png"
+              width="20"
+            />
+            <br />
+            <span>
+              PvC
+            </span>
+          </button>
+          <button
+            class="option-button"
+          >
+            <img
+              alt="Online"
+              src="/src/main/assets/startMenu/onlineMatchmakingIcon.png"
+              width="20"
+            />
+            <br />
+            <span>
+              Online PvP
+            </span>
+          </button>
+        </div>
+        <h2>
+          Duration
+        </h2>
+        <div
+          class="timer-buttons"
+        >
+          <button
+            class="option-button"
+          >
+            <img
+              alt="Person"
+              src="/src/main/assets/startMenu/shortDurationGameIcon.png"
+              width="16"
+            />
+            <br />
+            <span>
+              5 min
+            </span>
+          </button>
+          <button
+            class="option-button"
+          >
+            <img
+              alt="Person"
+              src="/src/main/assets/startMenu/mediumDurationGameIcon.png"
+              width="16"
+            />
+            <br />
+            <span>
+              10 min
+            </span>
+          </button>
+          <button
+            class="option-button"
+          >
+            <img
+              alt="Person"
+              src="/src/main/assets/startMenu/longDurationGameIcon.png"
+              width="16"
+            />
+            <br />
+            <span>
+              60 min
+            </span>
+          </button>
+        </div>
+        <br />
+        <button
+          class="start-button"
+        >
+           Start 
+        </button>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
