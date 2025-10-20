@@ -1,8 +1,9 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen } from '@testing-library/react';
 import GameOptionSidebar from '../../../../main/chess/components/controls/GameOptionsSidebar';
 
 describe('GameOptionSidebar', () => {
-  const mockOnOptionChange = jest.fn();
+  const mockOnOptionChange = vi.fn();
 
   const defaultProps = {
     selectedOption: 'standard',
@@ -15,7 +16,7 @@ describe('GameOptionSidebar', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders all options', () => {
